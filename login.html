@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Masuk - Toko Buku Online</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+  <header class="navbar">
+    <div class="container">
+      <a href="index.html" class="navbar-brand">
+        📚 <span>TokoBuku</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="auth-wrapper">
+    <div class="auth-card">
+      <div class="auth-header">
+        <h2 class="auth-title">Masuk ke Akun Anda</h2>
+        <p class="auth-subtitle">Silakan masukkan email dan kata sandi Anda</p>
+      </div>
+
+      <div id="authAlert" class="alert hidden" role="alert"></div>
+
+      <form id="loginForm" class="auth-form" novalidate>
+        <div class="form-group">
+          <label for="emailOrUsername" class="form-label">Email atau Username</label>
+          <input 
+            type="text" 
+            id="emailOrUsername" 
+            name="emailOrUsername" 
+            class="form-control" 
+            placeholder="nama@email.com atau username" 
+            required
+            autocomplete="username"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password" class="form-label">Kata Sandi</label>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            class="form-control" 
+            placeholder="Masukkan kata sandi" 
+            required
+            autocomplete="current-password"
+          >
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn btn-primary btn-block">Masuk</button>
+      </form>
+
+      <div class="auth-footer">
+        <p>Belum punya akun? <a href="register.html" class="auth-link">Daftar di sini</a></p>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="js/pages/login.js"></script>
+</body>
+</html>
