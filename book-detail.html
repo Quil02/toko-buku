@@ -21,4 +21,87 @@
       </nav>
 
       <div class="auth-buttons" id="authNavContainer">
-        <a href="login.html" class="btn btn-
+        <a href="login.html" class="btn btn-outline">Masuk</a>
+        <a href="register.html" class="btn btn-primary">Daftar</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb" aria-label="breadcrumb">
+        <a href="index.html">Katalog</a>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current" id="breadcrumbTitle">Memuat Buku...</span>
+      </nav>
+
+      <!-- Book Detail Container -->
+      <div id="bookDetailWrapper" class="book-detail-wrapper">
+        <div class="catalog-state">
+          <div class="catalog-state-icon">🔄</div>
+          <h3 class="catalog-state-title">Memuat Detail Buku...</h3>
+          <p class="catalog-state-desc">Mengambil informasi buku dari Google Books API.</p>
+        </div>
+      </div>
+
+      <!-- Reviews Section -->
+      <section class="reviews-section" id="reviewsSection">
+        <div class="reviews-header">
+          <h2 class="reviews-title">Ulasan Pembaca</h2>
+        </div>
+
+        <!-- Add Review Form -->
+        <div class="review-form-card" id="reviewFormCard">
+          <h3 class="review-form-title">Tulis Ulasan Anda</h3>
+          <form id="reviewForm" class="review-form">
+            <div class="form-group">
+              <label class="form-label">Beri Rating:</label>
+              <div class="star-rating-input" id="starRatingInput">
+                <span class="star" data-val="1">★</span>
+                <span class="star" data-val="2">★</span>
+                <span class="star" data-val="3">★</span>
+                <span class="star" data-val="4">★</span>
+                <span class="star" data-val="5">★</span>
+              </div>
+              <input type="hidden" id="reviewRating" name="rating" value="5">
+            </div>
+
+            <div class="form-group">
+              <label for="reviewComment" class="form-label">Ulasan / Komentar:</label>
+              <textarea 
+                id="reviewComment" 
+                name="comment" 
+                class="form-textarea" 
+                rows="4" 
+                placeholder="Bagikan pengalaman atau pendapat Anda tentang buku ini..." 
+                required
+              ></textarea>
+            </div>
+
+            <div class="review-form-actions">
+              <button type="submit" class="btn btn-primary" id="btnSubmitReview">Kirim Ulasan</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Reviews List -->
+        <div class="reviews-list" id="reviewsList">
+          <!-- Dynamic reviews will be injected here -->
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <p>&copy; 2025 BookStore Online. Menggunakan Google Books API.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script type="module" src="js/pages/bookDetail.js"></script>
+</body>
+</html>
