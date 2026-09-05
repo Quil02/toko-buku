@@ -3,24 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Detail Buku - BookStore</title>
+  <title>Detail Buku - Toko Buku Online</title>
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/detail.css">
 </head>
 <body>
   <!-- Header / Navigation -->
-  <header class="header">
-    <div class="container navbar">
-      <a href="index.html" class="logo">
-        <span class="logo-icon">📚</span>
-        <span>BookStore</span>
+  <header class="navbar">
+    <div class="container">
+      <a href="index.html" class="navbar-brand">
+        📚 <span>TokoBuku</span>
       </a>
 
-      <nav class="nav-links">
+      <nav class="navbar-nav">
         <a href="index.html" class="nav-link">Katalog</a>
       </nav>
 
-      <div class="auth-buttons" id="authNavContainer">
+      <div class="navbar-user" id="authNavContainer">
         <a href="login.html" class="btn btn-outline">Masuk</a>
         <a href="register.html" class="btn btn-primary">Daftar</a>
       </div>
@@ -29,7 +28,7 @@
 
   <!-- Main Content -->
   <main class="main-content">
-    <div class="container">
+    <div class="container detail-container">
       <!-- Breadcrumb -->
       <nav class="breadcrumb" aria-label="breadcrumb">
         <a href="index.html">Katalog</a>
@@ -49,31 +48,42 @@
       <!-- Reviews Section -->
       <section class="reviews-section" id="reviewsSection">
         <div class="reviews-header">
-          <h2 class="reviews-title">Ulasan Pembaca</h2>
+          <h3>Ulasan Pembaca</h3>
         </div>
 
         <!-- Add Review Form -->
-        <div class="review-form-card" id="reviewFormCard">
-          <h3 class="review-form-title">Tulis Ulasan Anda</h3>
+        <div class="review-form-container" id="reviewFormCard">
+          <h4 class="review-form-title">Tulis Ulasan Anda</h4>
           <form id="reviewForm" class="review-form">
-            <div class="form-group">
-              <label class="form-label">Beri Rating:</label>
-              <div class="star-rating-input" id="starRatingInput">
-                <span class="star" data-val="1">★</span>
-                <span class="star" data-val="2">★</span>
-                <span class="star" data-val="3">★</span>
-                <span class="star" data-val="4">★</span>
-                <span class="star" data-val="5">★</span>
-              </div>
-              <input type="hidden" id="reviewRating" name="rating" value="5">
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label for="reviewUserName" class="form-label">Nama Anda (Opsional / Otomatis jika Login):</label>
+              <input 
+                type="text" 
+                id="reviewUserName" 
+                name="userName" 
+                class="form-control" 
+                placeholder="Nama Anda"
+              >
             </div>
 
-            <div class="form-group">
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label class="form-label">Beri Rating:</label>
+              <div class="star-rating-input" id="starRatingInput">
+                <span class="star active" data-val="1">★</span>
+                <span class="star active" data-val="2">★</span>
+                <span class="star active" data-val="3">★</span>
+                <span class="star active" data-val="4">★</span>
+                <span class="star active" data-val="5">★</span>
+              </div>
+              <input type="hidden" id="ratingValue" name="rating" value="5">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1rem;">
               <label for="reviewComment" class="form-label">Ulasan / Komentar:</label>
               <textarea 
                 id="reviewComment" 
                 name="comment" 
-                class="form-textarea" 
+                class="form-control" 
                 rows="4" 
                 placeholder="Bagikan pengalaman atau pendapat Anda tentang buku ini..." 
                 required
@@ -96,8 +106,8 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <div class="container footer-content">
-      <p>&copy; 2025 BookStore Online. Menggunakan Google Books API.</p>
+    <div class="container footer-bottom">
+      <p>&copy; 2025 TokoBuku Online. Menggunakan data Google Books API.</p>
     </div>
   </footer>
 

@@ -1,4 +1,6 @@
-const REVIEWS_STORAGE_KEY = 'bookstore_reviews_storage';
+import { CONFIG } from '../config.js';
+
+const REVIEWS_STORAGE_KEY = CONFIG.REVIEWS_KEY || 'bookstore_reviews_storage';
 
 /**
  * Ulasan default untuk buku ketika belum ada ulasan buatan pengguna
@@ -86,7 +88,7 @@ export function submitReview(bookId, { rating, comment, userName }) {
   }
 
   const newReview = {
-    id: `rev_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+    id: `rev_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
     userName: userName && userName.trim() ? userName.trim() : 'Pembaca Anonim',
     rating: cleanRating,
     comment: comment.trim(),
@@ -98,3 +100,8 @@ export function submitReview(bookId, { rating, comment, userName }) {
 
   return newReview;
 }
+
+export default {
+  getReviewsByBookId,
+  submitReview
+};

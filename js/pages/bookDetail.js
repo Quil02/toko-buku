@@ -48,7 +48,7 @@ function initNavbarAuth() {
 
   if (isAuthenticated()) {
     const user = getUser();
-    const displayName = user?.fullName || user?.username || 'Akun Saya';
+    const displayName = user?.fullName || user?.email || 'Akun Saya';
     authNavContainer.innerHTML = `
       <span style="font-size: 0.9rem; font-weight: 600; color: #4b5563;">Halo, ${displayName}</span>
       <button class="btn btn-outline" id="btnLogout" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Keluar</button>
@@ -111,7 +111,9 @@ function initRatingStars() {
   stars.forEach(star => {
     star.addEventListener('click', () => {
       const selected = parseInt(star.getAttribute('data-val'), 10);
-      ratingValue.value = selected;
+      if (ratingValue) {
+        ratingValue.value = selected;
+      }
       highlightStars(selected);
     });
   });
@@ -140,7 +142,7 @@ async function loadBookDetail() {
     const book = await fetchBookById(bookId);
 
     breadcrumbTitle.textContent = book.title;
-    document.title = `${book.title} - BookStore`;
+    document.title = `${book.title} - TokoBuku`;
 
     bookDetailWrapper.innerHTML = `
       <section class="book-detail-main">
@@ -215,12 +217,18 @@ async function loadBookDetail() {
     reviewForm?.addEventListener('submit', (e) => {
       e.preventDefault();
       try {
-        const rating = parseInt(ratingValue.value, 10);
+        const rating = parseInt(ratingValue ? ratingValue.value : '5', 10);
         const comment = reviewComment.value;
-        const userName = reviewUserName.value;
+        const userName = reviewUserName?.value || (getUser()?.fullName || 'Pembaca');
 
         submitReview(bookId, { rating, comment, userName });
         reviewComment.value = '';
+        
+        // Reset stars to 5
+        if (ratingValue) ratingValue.value = '5';
+        const stars = starRatingInput?.querySelectorAll('.star');
+        stars?.forEach(s => s.classList.add('active'));
+
         renderReviews(bookId);
         alert('Terima kasih! Ulasan Anda berhasil ditambahkan.');
       } catch (err) {

@@ -1,4 +1,6 @@
-const MOCK_USERS_KEY = 'mock_registered_users';
+import { CONFIG } from '../config.js';
+
+const MOCK_USERS_KEY = CONFIG.MOCK_USERS_KEY || 'mock_registered_users';
 
 function getStoredUsers() {
   try {
@@ -18,7 +20,7 @@ function saveUsers(users) {
   }
 }
 
-function delay(ms = 500) {
+function delay(ms = 300) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 

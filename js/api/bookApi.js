@@ -1,4 +1,6 @@
-const GOOGLE_BOOKS_BASE_URL = 'https://www.googleapis.com/books/v1/volumes';
+import { CONFIG } from '../config.js';
+
+const GOOGLE_BOOKS_BASE_URL = CONFIG.GOOGLE_BOOK_API_BASE_URL || 'https://www.googleapis.com/books/v1/volumes';
 
 /**
  * Menghasilkan harga deterministik realistis (Rp 65.000 - Rp 185.000) berdasarkan string ID
@@ -36,7 +38,7 @@ function generateStockFromId(id = '') {
 /**
  * Normalisasi data buku dari format Google Books API ke format standar aplikasi
  * @param {Object} item 
- * @returns {Object}
+ * @returns {Object|null}
  */
 export function normalizeBookData(item) {
   if (!item || !item.id) {
@@ -163,3 +165,9 @@ export async function fetchBookById(id) {
     throw error;
   }
 }
+
+export default {
+  normalizeBookData,
+  fetchBooks,
+  fetchBookById
+};

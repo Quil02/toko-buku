@@ -9,18 +9,17 @@
 </head>
 <body>
   <!-- Header / Navigation -->
-  <header class="header">
-    <div class="container navbar">
-      <a href="index.html" class="logo">
-        <span class="logo-icon">📚</span>
-        <span>BookStore</span>
+  <header class="navbar">
+    <div class="container">
+      <a href="index.html" class="navbar-brand">
+        📚 <span>TokoBuku</span>
       </a>
 
-      <nav class="nav-links">
-        <a href="index.html" class="nav-link active">Katalog</a>
+      <nav class="navbar-nav">
+        <a href="index.html" class="nav-link">Katalog</a>
       </nav>
 
-      <div class="auth-buttons" id="authNavContainer">
+      <div class="navbar-user" id="authNavContainer">
         <!-- Dynamic via auth status -->
         <a href="login.html" class="btn btn-outline" id="navLoginBtn">Masuk</a>
         <a href="register.html" class="btn btn-primary" id="navRegisterBtn">Daftar</a>
@@ -70,10 +69,10 @@
         </div>
         <div class="price-range-inputs">
           <div class="price-input-group">
-            <input type="number" id="minPriceInput" placeholder="Min (cth. 50.000)" min="0" step="5000">
+            <input type="number" id="minPriceInput" placeholder="Min (cth. 50000)" min="0" step="5000">
           </div>
           <div class="price-input-group">
-            <input type="number" id="maxPriceInput" placeholder="Maks (cth. 200.000)" min="0" step="5000">
+            <input type="number" id="maxPriceInput" placeholder="Maks (cth. 200000)" min="0" step="5000">
           </div>
           <button type="button" class="btn btn-primary btn-filter-apply" id="applyPriceFilterBtn">Terapkan Filter</button>
           <button type="button" class="btn-filter-reset" id="resetFilterBtn">Reset Semua Filter</button>
@@ -110,8 +109,8 @@
   </main>
 
   <footer class="footer">
-    <div class="container text-center">
-      <p>&copy; 2025 BookStore App. Data didukung langsung oleh Google Books API.</p>
+    <div class="container footer-bottom">
+      <p>&copy; 2025 TokoBuku Online. Data didukung langsung oleh Google Books API.</p>
     </div>
   </footer>
 
