@@ -1,5 +1,6 @@
 import { fetchBookById } from '../api/bookApi.js';
 import { getReviewsByBookId, submitReview } from '../api/reviewApi.js';
+import { addToWishlist, isInWishlist } from '../api/wishlistApi.js';
 import { getUser, isAuthenticated, clearAuth } from '../utils/authStorage.js';
 
 const breadcrumbTitle = document.getElementById('breadcrumbTitle');
@@ -144,6 +145,8 @@ async function loadBookDetail() {
     breadcrumbTitle.textContent = book.title;
     document.title = `${book.title} - TokoBuku`;
 
+    const alreadyInWishlist = isInWishlist(book.id);
+
     bookDetailWrapper.innerHTML = `
       <section class="book-detail-main">
         <div class="book-detail-cover-area">
@@ -168,7 +171,9 @@ async function loadBookDetail() {
 
           <div class="book-detail-actions">
             <button class="btn btn-primary" id="btnBuyNow">🛒 Beli Sekarang</button>
-            <button class="btn btn-outline" id="btnWishlist">❤️ Tambah ke Wishlist</button>
+            <button class="btn btn-outline" id="btnWishlist">
+              ${alreadyInWishlist ? '❤️ Sudah di Wishlist' : '🤍 Tambah ke Wishlist'}
+            </button>
           </div>
 
           <div class="book-metadata-grid">
@@ -201,7 +206,7 @@ async function loadBookDetail() {
     // Tampilkan bagian ulasan & render
     if (reviewsSection) {
       reviewsSection.style.display = 'block';
-      renderReviews(bookId);
+      renderReviews(book.id);
     }
 
     // Tombol aksi interaktif
@@ -209,8 +214,15 @@ async function loadBookDetail() {
       alert(`Buku "${book.title}" telah ditambahkan ke keranjang belanja.`);
     });
 
-    document.getElementById('btnWishlist')?.addEventListener('click', () => {
-      alert(`Buku "${book.title}" berhasil disimpan ke daftar wishlist.`);
+    const btnWishlist = document.getElementById('btnWishlist');
+    btnWishlist?.addEventListener('click', () => {
+      const added = addToWishlist(book);
+      if (added) {
+        btnWishlist.textContent = '❤️ Sudah di Wishlist';
+        alert(`Buku "${book.title}" berhasil disimpan ke daftar wishlist.`);
+      } else {
+        alert(`Buku "${book.title}" sudah ada di daftar wishlist Anda.`);
+      }
     });
 
     // Form submit review
@@ -221,7 +233,7 @@ async function loadBookDetail() {
         const comment = reviewComment.value;
         const userName = reviewUserName?.value || (getUser()?.fullName || 'Pembaca');
 
-        submitReview(bookId, { rating, comment, userName });
+        submitReview(book.id, { rating, comment, userName });
         reviewComment.value = '';
         
         // Reset stars to 5
@@ -229,7 +241,7 @@ async function loadBookDetail() {
         const stars = starRatingInput?.querySelectorAll('.star');
         stars?.forEach(s => s.classList.add('active'));
 
-        renderReviews(bookId);
+        renderReviews(book.id);
         alert('Terima kasih! Ulasan Anda berhasil ditambahkan.');
       } catch (err) {
         alert(err.message || 'Gagal menyimpan ulasan.');
@@ -242,7 +254,7 @@ async function loadBookDetail() {
       <div class="catalog-state">
         <div class="catalog-state-icon">⚠️</div>
         <h3 class="catalog-state-title">Gagal Memuat Buku</h3>
-        <p class="catalog-state-desc">Tidak dapat mengambil data buku dari Google Books API.</p>
+        <p class="catalog-state-desc">Tidak dapat mengambil data buku dari Open Library API.</p>
       </div>
     `;
   }

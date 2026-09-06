@@ -55,7 +55,7 @@ function renderLoading() {
     <div class="catalog-state">
       <div class="catalog-state-icon">🔄</div>
       <h3 class="catalog-state-title">Memuat Koleksi Buku...</h3>
-      <p class="catalog-state-desc">Mengambil data buku langsung dari Google Books.</p>
+      <p class="catalog-state-desc">Mengambil data buku langsung dari Open Library.</p>
     </div>
   `;
 }
@@ -138,7 +138,7 @@ function applyClientFilters() {
 }
 
 /**
- * Melakukan pemanggilan Google Books API sesuai parameter search dan kategori
+ * Melakukan pemanggilan Open Library API sesuai parameter search dan kategori
  */
 async function loadBooksFromApi() {
   const query = searchInput.value.trim() || 'programming';
@@ -155,7 +155,7 @@ async function loadBooksFromApi() {
       <div class="catalog-state">
         <div class="catalog-state-icon">⚠️</div>
         <h3 class="catalog-state-title">Gagal Mengambil Data</h3>
-        <p class="catalog-state-desc">Terjadi kendala saat terhubung ke Google Books API. Silakan coba lagi.</p>
+        <p class="catalog-state-desc">Terjadi kendala saat terhubung ke Open Library API. Silakan coba lagi.</p>
       </div>
     `;
   }

@@ -1,6 +1,5 @@
-import { CONFIG } from '../config.js';
-
-const GOOGLE_BOOKS_BASE_URL = CONFIG.GOOGLE_BOOK_API_BASE_URL || 'https://www.googleapis.com/books/v1/volumes';
+const OPEN_LIBRARY_BASE_URL = 'https://openlibrary.org';
+const OPEN_LIBRARY_COVERS_URL = 'https://covers.openlibrary.org/b/id';
 
 /**
  * Menghasilkan harga deterministik realistis (Rp 65.000 - Rp 185.000) berdasarkan string ID
@@ -36,112 +35,187 @@ function generateStockFromId(id = '') {
 }
 
 /**
- * Normalisasi data buku dari format Google Books API ke format standar aplikasi
- * @param {Object} item 
+ * Ekstrak ID bersih dari Open Library key (misal '/works/OL45804W' -> 'OL45804W')
+ * @param {string} key 
+ * @returns {string}
+ */
+export function extractWorkId(key = '') {
+  if (!key) return '';
+  return key.replace(/^\/works\//, '').replace(/^\//, '');
+}
+
+/**
+ * Normalisasi data buku dari format Open Library Search API (/search.json)
+ * @param {Object} doc 
  * @returns {Object|null}
  */
-export function normalizeBookData(item) {
-  if (!item || !item.id) {
-    return null;
+export function normalizeBookData(doc) {
+  if (!doc) return null;
+
+  const rawKey = doc.key || (doc.cover_edition_key ? `/works/${doc.cover_edition_key}` : '');
+  const id = extractWorkId(rawKey) || (doc.cover_edition_key || Math.random().toString(36).substring(2, 9));
+
+  // Thumbnail cover dari Open Library
+  let thumbnail = 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&auto=format&fit=crop&q=80';
+  if (doc.cover_i) {
+    thumbnail = `${OPEN_LIBRARY_COVERS_URL}/${doc.cover_i}-L.jpg`;
+  } else if (doc.cover_id) {
+    thumbnail = `${OPEN_LIBRARY_COVERS_URL}/${doc.cover_id}-L.jpg`;
   }
 
-  const volumeInfo = item.volumeInfo || {};
-  const saleInfo = item.saleInfo || {};
-
-  // Image link secure HTTPS conversion
-  let thumbnail = volumeInfo.imageLinks?.thumbnail || volumeInfo.imageLinks?.smallThumbnail || '';
-  if (thumbnail.startsWith('http://')) {
-    thumbnail = thumbnail.replace('http://', 'https://');
-  }
-  if (!thumbnail) {
-    thumbnail = 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&auto=format&fit=crop&q=80';
-  }
-
-  // Normalisasi Penulis
-  let authors = volumeInfo.authors;
+  // Penulis
+  let authors = doc.author_name;
   if (!Array.isArray(authors) || authors.length === 0) {
     authors = ['Penulis Tidak Diketahui'];
   }
 
-  // Normalisasi Kategori
-  let categories = volumeInfo.categories;
+  // Kategori / Subject
+  let categories = doc.subject;
   if (!Array.isArray(categories) || categories.length === 0) {
     categories = ['Umum'];
   }
 
-  // Harga: ambil dari listPrice jika ada, atau gunakan generator deterministik
-  let price = 0;
-  if (saleInfo.listPrice && typeof saleInfo.listPrice.amount === 'number' && saleInfo.listPrice.amount > 0) {
-    price = saleInfo.listPrice.amount;
-    const currency = saleInfo.listPrice.currencyCode || 'IDR';
-    if (currency === 'USD') {
-      price = Math.round(price * 15500);
-    }
-  } else {
-    price = generatePriceFromId(item.id);
-  }
+  // Penerbit & Tahun
+  const publisher = Array.isArray(doc.publisher) && doc.publisher.length > 0 
+    ? doc.publisher[0] 
+    : 'Penerbit Terkemuka';
+  const publishedDate = doc.first_publish_year ? String(doc.first_publish_year) : '-';
 
-  // Rating & Ratings Count
-  const rating = volumeInfo.averageRating || 4.5;
-  const ratingsCount = volumeInfo.ratingsCount || Math.floor((item.id.charCodeAt(0) || 5) % 15) + 3;
+  // Rating & Jumlah Ulasan
+  const rating = doc.ratings_average ? Number(doc.ratings_average.toFixed(1)) : 4.5;
+  const ratingsCount = doc.ratings_count || (Math.floor((id.charCodeAt(0) || 5) % 15) + 3);
+
+  const price = generatePriceFromId(id);
+  const stock = generateStockFromId(id);
 
   return {
-    id: item.id,
-    title: volumeInfo.title || 'Judul Tidak Tersedia',
-    subtitle: volumeInfo.subtitle || '',
+    id,
+    workKey: rawKey.startsWith('/works/') ? rawKey : `/works/${id}`,
+    title: doc.title || 'Judul Tidak Tersedia',
+    subtitle: doc.subtitle || '',
     authors,
-    publisher: volumeInfo.publisher || 'Penerbit Umum',
-    publishedDate: volumeInfo.publishedDate || '-',
-    description: volumeInfo.description || 'Deskripsi buku tidak tersedia.',
+    publisher,
+    publishedDate,
+    description: doc.first_sentence ? doc.first_sentence[0] : 'Deskripsi buku tersedia di halaman detail lengkap.',
     thumbnail,
     categories,
-    pageCount: volumeInfo.pageCount || 0,
-    language: volumeInfo.language ? volumeInfo.language.toUpperCase() : 'ID',
+    category: categories[0] || 'Umum',
+    pageCount: doc.number_of_pages_median || 0,
+    language: Array.isArray(doc.language) && doc.language.length > 0 ? doc.language[0].toUpperCase() : 'ID',
     rating,
     ratingsCount,
     price,
-    stock: generateStockFromId(item.id),
-    previewLink: volumeInfo.previewLink || '#'
+    stock,
+    previewLink: `https://openlibrary.org/works/${id}`
   };
 }
 
 /**
- * Mengambil daftar buku dari Google Books API
+ * Normalisasi data detail buku dari endpoint Work Open Library (/works/{id}.json)
+ * @param {Object} item 
+ * @param {string} workId 
+ * @param {Object} extraDoc 
+ * @returns {Object}
+ */
+export function normalizeWorkDetail(item, workId, extraDoc = null) {
+  const id = workId || extractWorkId(item.key);
+
+  // Cover image
+  let thumbnail = 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&auto=format&fit=crop&q=80';
+  if (Array.isArray(item.covers) && item.covers.length > 0 && item.covers[0] > 0) {
+    thumbnail = `${OPEN_LIBRARY_COVERS_URL}/${item.covers[0]}-L.jpg`;
+  } else if (extraDoc?.cover_i) {
+    thumbnail = `${OPEN_LIBRARY_COVERS_URL}/${extraDoc.cover_i}-L.jpg`;
+  }
+
+  // Deskripsi (bisa berupa string atau object { type, value })
+  let description = 'Deskripsi buku tidak tersedia.';
+  if (typeof item.description === 'string') {
+    description = item.description;
+  } else if (item.description && typeof item.description.value === 'string') {
+    description = item.description.value;
+  } else if (extraDoc?.first_sentence) {
+    description = extraDoc.first_sentence[0] || description;
+  }
+
+  // Categories / Subjects
+  let categories = ['Umum'];
+  if (Array.isArray(item.subjects) && item.subjects.length > 0) {
+    categories = item.subjects.slice(0, 5);
+  } else if (extraDoc?.subject && Array.isArray(extraDoc.subject)) {
+    categories = extraDoc.subject.slice(0, 5);
+  }
+
+  // Authors
+  let authors = extraDoc?.author_name || ['Penulis Buku'];
+
+  const publishedDate = extraDoc?.first_publish_year 
+    ? String(extraDoc.first_publish_year) 
+    : (item.first_publish_date || item.created?.value?.substring(0, 4) || '-');
+
+  const publisher = (extraDoc?.publisher && extraDoc.publisher[0]) || 'Penerbit Pustaka';
+  const rating = extraDoc?.ratings_average ? Number(extraDoc.ratings_average.toFixed(1)) : 4.5;
+  const ratingsCount = extraDoc?.ratings_count || (Math.floor((id.charCodeAt(0) || 5) % 15) + 3);
+
+  return {
+    id,
+    workKey: item.key || `/works/${id}`,
+    title: item.title || extraDoc?.title || 'Judul Tidak Tersedia',
+    subtitle: item.subtitle || extraDoc?.subtitle || '',
+    authors,
+    publisher,
+    publishedDate,
+    description,
+    thumbnail,
+    categories,
+    category: categories[0] || 'Umum',
+    pageCount: extraDoc?.number_of_pages_median || 0,
+    language: 'ID',
+    rating,
+    ratingsCount,
+    price: generatePriceFromId(id),
+    stock: generateStockFromId(id),
+    previewLink: `https://openlibrary.org/works/${id}`
+  };
+}
+
+/**
+ * Mengambil daftar buku dari Open Library Search API
  * @param {Object} options 
  * @param {string} options.query
  * @param {string} options.category
  * @param {number} options.maxResults
- * @param {number} options.startIndex
+ * @param {number} options.page
  * @returns {Promise<Array>}
  */
-export async function fetchBooks({ query = 'programming', category = '', maxResults = 20, startIndex = 0 } = {}) {
+export async function fetchBooks({ query = 'programming', category = '', maxResults = 20, page = 1 } = {}) {
   try {
-    let qParam = query.trim() || 'novel';
+    let searchParam = query.trim() || 'programming';
+    let url = `${OPEN_LIBRARY_BASE_URL}/search.json?q=${encodeURIComponent(searchParam)}&limit=${maxResults}&page=${page}`;
+
     if (category) {
-      qParam += `+subject:${category}`;
+      url += `&subject=${encodeURIComponent(category)}`;
     }
 
-    const url = `${GOOGLE_BOOKS_BASE_URL}?q=${encodeURIComponent(qParam)}&maxResults=${maxResults}&startIndex=${startIndex}&projection=full`;
     const response = await fetch(url);
-
     if (!response.ok) {
-      throw new Error(`Gagal memuat buku: Status ${response.status}`);
+      throw new Error(`Gagal memuat buku dari Open Library: Status ${response.status}`);
     }
 
     const data = await response.json();
-    if (!data.items || !Array.isArray(data.items)) {
+    if (!data.docs || !Array.isArray(data.docs)) {
       return [];
     }
 
-    return data.items.map(normalizeBookData).filter(Boolean);
+    return data.docs.map(normalizeBookData).filter(Boolean);
   } catch (error) {
-    console.error('Error fetching books:', error);
+    console.error('Error fetching books from Open Library:', error);
     throw error;
   }
 }
 
 /**
- * Mengambil detail satu buku berdasarkan ID
+ * Mengambil detail satu buku berdasarkan ID / Work Key dari Open Library
  * @param {string} id 
  * @returns {Promise<Object>}
  */
@@ -150,16 +224,61 @@ export async function fetchBookById(id) {
     throw new Error('ID buku diperlukan');
   }
 
+  const cleanWorkId = extractWorkId(id);
+
   try {
-    const url = `${GOOGLE_BOOKS_BASE_URL}/${encodeURIComponent(id)}`;
-    const response = await fetch(url);
+    // 1. Ambil detail work JSON
+    const workUrl = `${OPEN_LIBRARY_BASE_URL}/works/${cleanWorkId}.json`;
+    const response = await fetch(workUrl);
 
     if (!response.ok) {
+      // Fallback: coba cari via search query ID jika direct work gagal
+      const searchFallback = await fetch(`${OPEN_LIBRARY_BASE_URL}/search.json?q=${encodeURIComponent(cleanWorkId)}&limit=1`);
+      if (searchFallback.ok) {
+        const searchData = await searchFallback.json();
+        if (searchData.docs && searchData.docs.length > 0) {
+          return normalizeBookData(searchData.docs[0]);
+        }
+      }
       throw new Error(`Gagal memuat detail buku: Status ${response.status}`);
     }
 
-    const item = await response.json();
-    return normalizeBookData(item);
+    const workData = await response.json();
+
+    // 2. Ambil informasi metadata tambahan & nama author melalui search index
+    let extraDoc = null;
+    try {
+      const searchRes = await fetch(`${OPEN_LIBRARY_BASE_URL}/search.json?q=${encodeURIComponent(workData.title || cleanWorkId)}&limit=1`);
+      if (searchRes.ok) {
+        const sData = await searchRes.json();
+        if (sData.docs && sData.docs.length > 0) {
+          extraDoc = sData.docs[0];
+        }
+      }
+    } catch (e) {
+      // Ignore fallback error
+    }
+
+    // Jika ada referensi authors di workData tapi belum ada di extraDoc
+    if ((!extraDoc || !extraDoc.author_name) && Array.isArray(workData.authors) && workData.authors.length > 0) {
+      try {
+        const authorKey = workData.authors[0]?.author?.key;
+        if (authorKey) {
+          const authorRes = await fetch(`${OPEN_LIBRARY_BASE_URL}${authorKey}.json`);
+          if (authorRes.ok) {
+            const authorData = await authorRes.json();
+            if (authorData.name) {
+              if (!extraDoc) extraDoc = {};
+              extraDoc.author_name = [authorData.name];
+            }
+          }
+        }
+      } catch (err) {
+        // Ignore author fetch error
+      }
+    }
+
+    return normalizeWorkDetail(workData, cleanWorkId, extraDoc);
   } catch (error) {
     console.error(`Error fetching book with ID ${id}:`, error);
     throw error;
@@ -167,7 +286,9 @@ export async function fetchBookById(id) {
 }
 
 export default {
+  extractWorkId,
   normalizeBookData,
+  normalizeWorkDetail,
   fetchBooks,
   fetchBookById
 };
