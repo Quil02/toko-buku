@@ -86,7 +86,6 @@ function renderBooks(books) {
     <article class="book-card">
       <div class="book-card-cover-wrap">
         <img src="${book.thumbnail}" alt="${book.title}" class="book-card-cover" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&auto=format&fit=crop&q=80'">
-        <span class="book-card-badge">Stok: ${book.stock}</span>
       </div>
       <div class="book-card-body">
         <span class="book-card-category">${book.categories[0] || 'Umum'}</span>

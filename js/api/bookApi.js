@@ -22,19 +22,6 @@ function generatePriceFromId(id = '') {
 }
 
 /**
- * Menghasilkan stok deterministik (5 - 35 unit) berdasarkan string ID
- * @param {string} id 
- * @returns {number}
- */
-function generateStockFromId(id = '') {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = (hash << 3) + id.charCodeAt(i);
-  }
-  return 5 + (Math.abs(hash) % 31);
-}
-
-/**
  * Ekstrak ID bersih dari Open Library key (misal '/works/OL45804W' -> 'OL45804W')
  * @param {string} key 
  * @returns {string}
@@ -86,7 +73,6 @@ export function normalizeBookData(doc) {
   const ratingsCount = doc.ratings_count || (Math.floor((id.charCodeAt(0) || 5) % 15) + 3);
 
   const price = generatePriceFromId(id);
-  const stock = generateStockFromId(id);
 
   return {
     id,
@@ -105,7 +91,6 @@ export function normalizeBookData(doc) {
     rating,
     ratingsCount,
     price,
-    stock,
     previewLink: `https://openlibrary.org/works/${id}`
   };
 }
@@ -174,7 +159,6 @@ export function normalizeWorkDetail(item, workId, extraDoc = null) {
     rating,
     ratingsCount,
     price: generatePriceFromId(id),
-    stock: generateStockFromId(id),
     previewLink: `https://openlibrary.org/works/${id}`
   };
 }

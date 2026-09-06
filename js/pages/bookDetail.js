@@ -102,10 +102,6 @@ async function loadBookDetail() {
               <span class="metadata-label">Halaman</span>
               <span class="metadata-value">${book.pageCount ? book.pageCount + ' Hlm' : 'N/A'}</span>
             </div>
-            <div class="metadata-item">
-              <span class="metadata-label">Stok Tersedia</span>
-              <span class="metadata-value">${book.stock} unit</span>
-            </div>
           </div>
 
           <div class="book-synopsis">

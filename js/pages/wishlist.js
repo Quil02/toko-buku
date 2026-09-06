@@ -69,14 +69,6 @@ function renderWishlist() {
   }
 
   wishlistGrid.innerHTML = items.map(item => {
-    const currentStock = typeof item.stock === 'number' ? item.stock : 10;
-    let stockBadge = '<span class="stock-badge in-stock">Tersedia</span>';
-    if (currentStock === 0) {
-      stockBadge = '<span class="stock-badge out-of-stock">Habis</span>';
-    } else if (currentStock < 5) {
-      stockBadge = `<span class="stock-badge low-stock">Sisa ${currentStock}</span>`;
-    }
-
     const authors = Array.isArray(item.authors) ? item.authors.join(', ') : (item.authors || 'Anonim');
 
     return `
@@ -93,7 +85,6 @@ function renderWishlist() {
           <div class="wishlist-card-author">oleh ${authors}</div>
           <div class="wishlist-card-price-row">
             <div class="wishlist-card-price">${formatRupiah(item.price)}</div>
-            <div>${stockBadge}</div>
           </div>
           <div class="wishlist-card-actions">
             <a href="book-detail.html?id=${item.id}" class="btn btn-outline">Detail</a>
