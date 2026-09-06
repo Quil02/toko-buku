@@ -15,3 +15,127 @@
         <span class="nav-brand-icon">📚</span>
         <span class="nav-brand-text">PustakaKita Admin</span>
       </a>
+
+      <nav class="nav-links">
+        <a href="index.html" class="nav-link">Katalog Toko</a>
+        <a href="wishlist.html" class="nav-link">Wishlist</a>
+        <a href="inventory-admin.html" class="nav-link active">Admin Stok</a>
+      </nav>
+
+      <div class="nav-auth" id="authNavContainer">
+        <span class="live-badge">
+          <span class="live-dot"></span>
+          Live Sync Active
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Dashboard -->
+  <main class="inventory-container">
+    <div class="inventory-header">
+      <div class="inventory-title">
+        <h1>Manajemen Stok Inventaris</h1>
+        <p>Kelola dan pantau stok buku secara instan dengan sinkronisasi multi-tab real-time.</p>
+      </div>
+      <div>
+        <button id="btnRefreshInventory" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 0.4rem;">
+          🔄 Segarkan Data
+        </button>
+      </div>
+    </div>
+
+    <!-- Ringkasan Statistik Stok -->
+    <div class="inventory-stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon total">📚</div>
+        <div class="stat-info">
+          <h4>Total Judul Buku</h4>
+          <div class="stat-value" id="statTotalBooks">0</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon ready">✅</div>
+        <div class="stat-info">
+          <h4>Stok Aman (&ge; 5)</h4>
+          <div class="stat-value" id="statInStock">0</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon warning">⚠️</div>
+        <div class="stat-info">
+          <h4>Stok Menipis (&lt; 5)</h4>
+          <div class="stat-value" id="statLowStock">0</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon danger">❌</div>
+        <div class="stat-info">
+          <h4>Stok Habis (0)</h4>
+          <div class="stat-value" id="statOutOfStock">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toolbar Pencarian & Filter -->
+    <div class="inventory-toolbar">
+      <div class="inventory-search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="inventorySearch" placeholder="Cari judul buku atau penulis..." />
+      </div>
+
+      <div>
+        <select id="inventoryFilterStatus" class="inventory-filter-select">
+          <option value="ALL">Semua Status Stok</option>
+          <option value="IN_STOCK">Tersedia (&ge; 5)</option>
+          <option value="LOW_STOCK">Menipis (&lt; 5)</option>
+          <option value="OUT_OF_STOCK">Habis (0)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Tabel Monitoring Stok -->
+    <div class="table-card">
+      <div class="table-responsive">
+        <table class="inventory-table">
+          <thead>
+            <tr>
+              <th style="width: 70px;">Cover</th>
+              <th>Judul Buku & Penulis</th>
+              <th>Kategori</th>
+              <th>Harga</th>
+              <th style="width: 160px; text-align: center;">Kuantitas Stok</th>
+              <th>Status</th>
+              <th style="text-align: right;">Aksi Cepat</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryTableBody">
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 3rem; color: #6b7280;">
+                Memuat data inventaris...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Notifikasi Toast Real-Time -->
+  <div id="inventoryToast" class="inventory-toast">
+    <span id="toastIcon">🔔</span>
+    <span id="toastMessage">Pembaruan stok berhasil disimpan.</span>
+  </div>
+
+  <footer class="footer" style="margin-top: 3rem;">
+    <div class="footer-container">
+      <p>&copy; 2025 PustakaKita - Sistem Manajemen Inventaris Terintegrasi.</p>
+    </div>
+  </footer>
+
+  <script type="module" src="js/pages/inventory.js"></script>
+</body>
+</html>
