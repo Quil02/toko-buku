@@ -122,9 +122,6 @@ async function loadBookDetail() {
       const added = addToWishlist(book);
       if (added) {
         btnWishlist.textContent = '❤️ Sudah di Wishlist';
-        alert(`Buku "${book.title}" berhasil disimpan ke daftar wishlist.`);
-      } else {
-        alert(`Buku "${book.title}" sudah ada di daftar wishlist Anda.`);
       }
     });
 
