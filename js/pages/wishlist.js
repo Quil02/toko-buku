@@ -2,9 +2,7 @@
  * Logika Halaman Wishlist
  */
 import { getWishlist, removeFromWishlist } from '../api/wishlistApi.js';
-import { getStockById } from '../api/inventoryApi.js';
 import { isAuthenticated, getUser, clearAuth } from '../utils/authStorage.js';
-import { connectSocket } from '../utils/realTimeSocket.js';
 
 const wishlistGrid = document.getElementById('wishlistGrid');
 const wishlistTotalBadge = document.getElementById('wishlistTotalBadge');
@@ -76,8 +74,7 @@ function renderWishlist() {
   }
 
   wishlistGrid.innerHTML = items.map(item => {
-    // Selalu dapatkan stok terkini dari storage
-    const currentStock = getStockById(item.id, item.stock);
+    const currentStock = typeof item.stock === 'number' ? item.stock : 10;
     let stockBadge = '<span class="stock-badge in-stock">Tersedia</span>';
     if (currentStock === 0) {
       stockBadge = '<span class="stock-badge out-of-stock">Habis</span>';
@@ -128,11 +125,4 @@ function renderWishlist() {
 document.addEventListener('DOMContentLoaded', () => {
   initNavbarAuth();
   renderWishlist();
-
-  // Sinkronisasi perubahan stok bila ada update real-time di tab lain
-  connectSocket((payload) => {
-    if (payload?.type === 'STOCK_UPDATED' || payload?.type === 'STOCK_STORAGE_SYNC') {
-      renderWishlist();
-    }
-  });
 });
