@@ -1,0 +1,304 @@
+/* ==========================================================================
+   Inventory Admin Styles
+   ========================================================================== */
+
+.inventory-container {
+  max-width: 1280px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+}
+
+.inventory-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.inventory-title h1 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+.inventory-title p {
+  color: #6b7280;
+  font-size: 0.95rem;
+  margin-top: 0.2rem;
+}
+
+.live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.85rem;
+  background-color: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #10b981;
+  border-radius: 50%;
+  animation: pulse-dot 1.5s infinite;
+}
+
+@keyframes pulse-dot {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+/* Stats Cards */
+.inventory-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: #ffffff;
+  padding: 1.25rem;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.stat-icon.total { background: #e0e7ff; color: #4338ca; }
+.stat-icon.warning { background: #fef3c7; color: #b45309; }
+.stat-icon.danger { background: #fee2e2; color: #b91c1c; }
+.stat-icon.ready { background: #d1fae5; color: #047857; }
+
+.stat-info h4 {
+  font-size: 0.85rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.stat-info .stat-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin-top: 0.2rem;
+}
+
+/* Filters & Controls */
+.inventory-toolbar {
+  background: #ffffff;
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 1.5rem;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.inventory-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 250px;
+}
+
+.inventory-search-wrap input {
+  width: 100%;
+  padding: 0.6rem 1rem 0.6rem 2.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.inventory-search-wrap .search-icon {
+  position: absolute;
+  left: 0.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+}
+
+.inventory-filter-select {
+  padding: 0.6rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background-color: #ffffff;
+  color: #374151;
+}
+
+/* Inventory Table */
+.table-card {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.inventory-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.inventory-table th {
+  background-color: #f9fafb;
+  color: #4b5563;
+  padding: 0.9rem 1rem;
+  font-weight: 700;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.inventory-table td {
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: middle;
+}
+
+.inventory-table tr:hover {
+  background-color: #f8fafc;
+}
+
+/* Row highlight animation saat real-time update */
+tr.stock-updated-highlight {
+  animation: highlight-row 2s ease-out;
+}
+
+@keyframes highlight-row {
+  0% {
+    background-color: #fef08a;
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.table-book-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.table-book-cover {
+  width: 42px;
+  height: 58px;
+  object-fit: cover;
+  border-radius: 4px;
+  background-color: #e5e7eb;
+  flex-shrink: 0;
+}
+
+.table-book-title {
+  font-weight: 700;
+  color: #111827;
+  max-width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table-book-author {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.stock-control {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.stock-btn {
+  background-color: #f3f4f6;
+  border: none;
+  padding: 0.4rem 0.65rem;
+  cursor: pointer;
+  font-weight: 700;
+  color: #374151;
+  transition: background-color 0.2s;
+}
+
+.stock-btn:hover {
+  background-color: #e5e7eb;
+}
+
+.stock-input {
+  width: 55px;
+  border: none;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.4rem 0.2rem;
+  outline: none;
+}
+
+.stock-input::-webkit-inner-spin-button,
+.stock-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Toast Notifications */
+.inventory-toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background-color: #1f2937;
+  color: #ffffff;
+  padding: 0.85rem 1.25rem;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 9999;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.inventory-toast.show {
+  transform: translateY(0);
+  opacity: 1;
+}
