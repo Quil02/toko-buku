@@ -48,12 +48,7 @@ function updateWishlistCounter(count) {
     wishlistTotalBadge.textContent = `${count} item`;
   }
   if (navWishlistCount) {
-    if (count > 0) {
-      navWishlistCount.style.display = 'inline-block';
-      navWishlistCount.textContent = count;
-    } else {
-      navWishlistCount.style.display = 'none';
-    }
+    navWishlistCount.style.display = 'none';
   }
 }
 
