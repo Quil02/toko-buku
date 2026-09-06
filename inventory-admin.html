@@ -84,7 +84,7 @@
     <div class="inventory-toolbar">
       <div class="inventory-search-wrap">
         <span class="search-icon">🔍</span>
-        <input type="text" id="inventorySearch" placeholder="Cari judul buku atau penulis..." />
+        <input type="text" id="inventorySearch" placeholder="Cari judul buku, penulis, atau ID..." />
       </div>
 
       <div>
@@ -103,8 +103,9 @@
         <table class="inventory-table">
           <thead>
             <tr>
+              <th style="width: 100px;">ID Buku</th>
               <th style="width: 70px;">Cover</th>
-              <th>Judul Buku & Penulis</th>
+              <th>Judul Buku &amp; Penulis</th>
               <th>Kategori</th>
               <th>Harga</th>
               <th style="width: 160px; text-align: center;">Kuantitas Stok</th>
@@ -114,7 +115,7 @@
           </thead>
           <tbody id="inventoryTableBody">
             <tr>
-              <td colspan="7" style="text-align: center; padding: 3rem; color: #6b7280;">
+              <td colspan="8" style="text-align: center; padding: 3rem; color: #6b7280;">
                 Memuat data inventaris...
               </td>
             </tr>

@@ -97,7 +97,7 @@ function renderTable(highlightBookId = null) {
   if (filtered.length === 0) {
     inventoryTableBody.innerHTML = `
       <tr>
-        <td colspan="7" style="text-align: center; padding: 2.5rem; color: #6b7280;">
+        <td colspan="8" style="text-align: center; padding: 2.5rem; color: #6b7280;">
           Tidak ada buku yang sesuai dengan kriteria pencarian/filter.
         </td>
       </tr>
@@ -118,6 +118,9 @@ function renderTable(highlightBookId = null) {
 
     return `
       <tr class="${isHighlighted ? 'stock-updated-highlight' : ''}" data-id="${book.id}">
+        <td>
+          <code style="font-size: 0.8rem; background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 4px; color: #4b5563;">${book.id}</code>
+        </td>
         <td>
           <img src="${book.thumbnail}" alt="${book.title}" class="table-book-cover" onerror="this.src='https://via.placeholder.com/42x58?text=Cover';" />
         </td>
@@ -207,7 +210,7 @@ function attachTableEventListeners() {
 async function loadInventoryData() {
   inventoryTableBody.innerHTML = `
     <tr>
-      <td colspan="7" style="text-align: center; padding: 3rem; color: #6b7280;">
+      <td colspan="8" style="text-align: center; padding: 3rem; color: #6b7280;">
         🔄 Mengambil data katalog buku dan stok inventaris...
       </td>
     </tr>
@@ -227,7 +230,7 @@ async function loadInventoryData() {
     console.error('Gagal memuat inventaris:', error);
     inventoryTableBody.innerHTML = `
       <tr>
-        <td colspan="7" style="text-align: center; padding: 3rem; color: #ef4444;">
+        <td colspan="8" style="text-align: center; padding: 3rem; color: #ef4444;">
           ⚠️ Terjadi kesalahan saat memuat data inventaris: ${error.message}
         </td>
       </tr>
