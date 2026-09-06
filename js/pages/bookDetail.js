@@ -1,5 +1,5 @@
 import { fetchBookById } from '../api/bookApi.js';
-import { addToWishlist, isInWishlist } from '../api/wishlistApi.js';
+import { addToWishlist, isInWishlist, removeFromWishlist } from '../api/wishlistApi.js';
 import { getUser, isAuthenticated, clearAuth } from '../utils/authStorage.js';
 
 const breadcrumbTitle = document.getElementById('breadcrumbTitle');
@@ -119,8 +119,11 @@ async function loadBookDetail() {
 
     const btnWishlist = document.getElementById('btnWishlist');
     btnWishlist?.addEventListener('click', () => {
-      const added = addToWishlist(book);
-      if (added) {
+      if (isInWishlist(book.id)) {
+        removeFromWishlist(book.id);
+        btnWishlist.textContent = '🤍 Tambah ke Wishlist';
+      } else {
+        addToWishlist(book);
         btnWishlist.textContent = '❤️ Sudah di Wishlist';
       }
     });
