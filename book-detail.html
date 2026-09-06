@@ -44,63 +44,6 @@
           <p class="catalog-state-desc">Mengambil informasi buku dari Google Books API.</p>
         </div>
       </div>
-
-      <!-- Reviews Section -->
-      <section class="reviews-section" id="reviewsSection">
-        <div class="reviews-header">
-          <h3>Ulasan Pembaca</h3>
-        </div>
-
-        <!-- Add Review Form -->
-        <div class="review-form-container" id="reviewFormCard">
-          <h4 class="review-form-title">Tulis Ulasan Anda</h4>
-          <form id="reviewForm" class="review-form">
-            <div class="form-group" style="margin-bottom: 1rem;">
-              <label for="reviewUserName" class="form-label">Nama Anda (Opsional / Otomatis jika Login):</label>
-              <input 
-                type="text" 
-                id="reviewUserName" 
-                name="userName" 
-                class="form-control" 
-                placeholder="Nama Anda"
-              >
-            </div>
-
-            <div class="form-group" style="margin-bottom: 1rem;">
-              <label class="form-label">Beri Rating:</label>
-              <div class="star-rating-input" id="starRatingInput">
-                <span class="star active" data-val="1">★</span>
-                <span class="star active" data-val="2">★</span>
-                <span class="star active" data-val="3">★</span>
-                <span class="star active" data-val="4">★</span>
-                <span class="star active" data-val="5">★</span>
-              </div>
-              <input type="hidden" id="ratingValue" name="rating" value="5">
-            </div>
-
-            <div class="form-group" style="margin-bottom: 1rem;">
-              <label for="reviewComment" class="form-label">Ulasan / Komentar:</label>
-              <textarea 
-                id="reviewComment" 
-                name="comment" 
-                class="form-control" 
-                rows="4" 
-                placeholder="Bagikan pengalaman atau pendapat Anda tentang buku ini..." 
-                required
-              ></textarea>
-            </div>
-
-            <div class="review-form-actions">
-              <button type="submit" class="btn btn-primary" id="btnSubmitReview">Kirim Ulasan</button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Reviews List -->
-        <div class="reviews-list" id="reviewsList">
-          <!-- Dynamic reviews will be injected here -->
-        </div>
-      </section>
     </div>
   </main>
 

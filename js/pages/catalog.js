@@ -92,9 +92,6 @@ function renderBooks(books) {
         <span class="book-card-category">${book.categories[0] || 'Umum'}</span>
         <h3 class="book-card-title" title="${book.title}">${book.title}</h3>
         <p class="book-card-author">${book.authors.join(', ')}</p>
-        <div class="book-card-rating">
-          <span>★</span> ${book.rating} <span>(${book.ratingsCount})</span>
-        </div>
         <div class="book-card-footer">
           <span class="book-card-price">${formatRupiah(book.price)}</span>
           <a href="book-detail.html?id=${encodeURIComponent(book.id)}" class="btn btn-primary book-card-btn">Detail</a>
@@ -128,8 +125,6 @@ function applyClientFilters() {
     filtered.sort((a, b) => a.price - b.price);
   } else if (sortMode === 'price-desc') {
     filtered.sort((a, b) => b.price - a.price);
-  } else if (sortMode === 'rating-desc') {
-    filtered.sort((a, b) => b.rating - a.rating);
   } else if (sortMode === 'title-asc') {
     filtered.sort((a, b) => a.title.localeCompare(b.title));
   }

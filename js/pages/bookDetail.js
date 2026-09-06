@@ -1,17 +1,9 @@
 import { fetchBookById } from '../api/bookApi.js';
-import { getReviewsByBookId, submitReview } from '../api/reviewApi.js';
 import { addToWishlist, isInWishlist } from '../api/wishlistApi.js';
 import { getUser, isAuthenticated, clearAuth } from '../utils/authStorage.js';
 
 const breadcrumbTitle = document.getElementById('breadcrumbTitle');
 const bookDetailWrapper = document.getElementById('bookDetailWrapper');
-const reviewsSection = document.getElementById('reviewsSection');
-const reviewsList = document.getElementById('reviewsList');
-const reviewForm = document.getElementById('reviewForm');
-const starRatingInput = document.getElementById('starRatingInput');
-const ratingValue = document.getElementById('ratingValue');
-const reviewUserName = document.getElementById('reviewUserName');
-const reviewComment = document.getElementById('reviewComment');
 const authNavContainer = document.getElementById('authNavContainer');
 
 /**
@@ -23,22 +15,6 @@ function formatRupiah(amount) {
     currency: 'IDR',
     maximumFractionDigits: 0
   }).format(amount);
-}
-
-/**
- * Format tanggal ulasan
- */
-function formatDate(isoString) {
-  try {
-    const d = new Date(isoString);
-    return d.toLocaleDateString('id-ID', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
-  } catch (e) {
-    return 'Baru saja';
-  }
 }
 
 /**
@@ -59,65 +35,7 @@ function initNavbarAuth() {
       clearAuth();
       window.location.reload();
     });
-
-    if (reviewUserName && user?.fullName) {
-      reviewUserName.value = user.fullName;
-    }
   }
-}
-
-/**
- * Render ulasan buku
- */
-function renderReviews(bookId) {
-  const reviews = getReviewsByBookId(bookId);
-
-  if (reviews.length === 0) {
-    reviewsList.innerHTML = '<p style="color: #6b7280; font-size: 0.95rem;">Belum ada ulasan untuk buku ini. Jadilah yang pertama memberikan ulasan!</p>';
-    return;
-  }
-
-  reviewsList.innerHTML = reviews.map(rev => `
-    <div class="review-item">
-      <div class="review-item-header">
-        <span class="review-item-user">${rev.userName}</span>
-        <span class="review-item-date">${formatDate(rev.createdAt)}</span>
-      </div>
-      <div class="review-item-rating">
-        ${'★'.repeat(rev.rating)}${'☆'.repeat(5 - rev.rating)}
-      </div>
-      <p class="review-item-comment">${rev.comment}</p>
-    </div>
-  `).join('');
-}
-
-/**
- * Interaksi Bintang Rating
- */
-function initRatingStars() {
-  const stars = starRatingInput?.querySelectorAll('.star');
-  if (!stars) return;
-
-  function highlightStars(val) {
-    stars.forEach(star => {
-      const starVal = parseInt(star.getAttribute('data-val'), 10);
-      if (starVal <= val) {
-        star.classList.add('active');
-      } else {
-        star.classList.remove('active');
-      }
-    });
-  }
-
-  stars.forEach(star => {
-    star.addEventListener('click', () => {
-      const selected = parseInt(star.getAttribute('data-val'), 10);
-      if (ratingValue) {
-        ratingValue.value = selected;
-      }
-      highlightStars(selected);
-    });
-  });
 }
 
 /**
@@ -160,11 +78,6 @@ async function loadBookDetail() {
           <h1 class="book-detail-title">${book.title}</h1>
           <p class="book-detail-authors">Oleh: <strong>${book.authors.join(', ')}</strong></p>
 
-          <div class="book-detail-rating-summary">
-            <span>★</span> <strong>${book.rating}</strong>
-            <span style="color: #6b7280; font-size: 0.9rem;">(${book.ratingsCount} ulasan pembaca)</span>
-          </div>
-
           <div class="book-detail-price">
             ${formatRupiah(book.price)}
           </div>
@@ -203,12 +116,6 @@ async function loadBookDetail() {
       </section>
     `;
 
-    // Tampilkan bagian ulasan & render
-    if (reviewsSection) {
-      reviewsSection.style.display = 'block';
-      renderReviews(book.id);
-    }
-
     // Tombol aksi interaktif
     document.getElementById('btnBuyNow')?.addEventListener('click', () => {
       alert(`Buku "${book.title}" telah ditambahkan ke keranjang belanja.`);
@@ -222,29 +129,6 @@ async function loadBookDetail() {
         alert(`Buku "${book.title}" berhasil disimpan ke daftar wishlist.`);
       } else {
         alert(`Buku "${book.title}" sudah ada di daftar wishlist Anda.`);
-      }
-    });
-
-    // Form submit review
-    reviewForm?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      try {
-        const rating = parseInt(ratingValue ? ratingValue.value : '5', 10);
-        const comment = reviewComment.value;
-        const userName = reviewUserName?.value || (getUser()?.fullName || 'Pembaca');
-
-        submitReview(book.id, { rating, comment, userName });
-        reviewComment.value = '';
-        
-        // Reset stars to 5
-        if (ratingValue) ratingValue.value = '5';
-        const stars = starRatingInput?.querySelectorAll('.star');
-        stars?.forEach(s => s.classList.add('active'));
-
-        renderReviews(book.id);
-        alert('Terima kasih! Ulasan Anda berhasil ditambahkan.');
-      } catch (err) {
-        alert(err.message || 'Gagal menyimpan ulasan.');
       }
     });
 
@@ -262,5 +146,4 @@ async function loadBookDetail() {
 
 // Initial Setup
 initNavbarAuth();
-initRatingStars();
 loadBookDetail();
