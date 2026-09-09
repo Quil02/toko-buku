@@ -4,7 +4,7 @@ import {
   savePayment,
   PAYMENT_METHOD_LABELS,
 } from "../api/paymentApi.js";
-import { getUser, isAuthenticated } from "../utils/authStorage.js";
+import { getUser, isAuthenticated, clearAuth } from "../utils/authStorage.js";
 
 // ---- Elemen DOM ----
 const orderBookInfoEl = document.getElementById("orderBookInfo");
@@ -61,6 +61,10 @@ function prefillUserData() {
 
   buyerNameEl.value = user.fullName || "";
   buyerEmailEl.value = user.email || "";
+
+  // Kunci field agar tidak bisa diubah manual
+  buyerNameEl.readOnly = true;
+  buyerEmailEl.readOnly = true;
 }
 
 // ---- Render Ringkasan Pesanan ----
@@ -100,8 +104,10 @@ function hideAlert() {
 
 // ---- Validasi form ----
 function validateForm() {
-  const name = buyerNameEl.value.trim();
-  const email = buyerEmailEl.value.trim();
+  // Ambil dari field, fallback ke data user di localStorage
+  const user = getUser();
+  const name = buyerNameEl.value.trim() || user?.fullName || "";
+  const email = buyerEmailEl.value.trim() || user?.email || "";
   const method = document.querySelector('input[name="paymentMethod"]:checked');
 
   if (!name) {
@@ -177,3 +183,24 @@ btnPay.addEventListener("click", () => {
 // ---- Init ----
 renderOrderSummary();
 prefillUserData();
+
+// ---- Update Navbar sesuai status login ----
+function updateNavbar() {
+  const authNavContainer = document.getElementById("authNavContainer");
+  if (!authNavContainer) return;
+
+  if (isAuthenticated()) {
+    const user = getUser();
+    const displayName = user?.fullName || user?.username || "Akun Saya";
+    authNavContainer.innerHTML = `
+      <span style="font-size: 0.9rem; font-weight: 600; color: #4b5563;">Halo, ${displayName}</span>
+      <button class="btn btn-outline" id="btnLogout" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Keluar</button>
+    `;
+    document.getElementById("btnLogout")?.addEventListener("click", () => {
+      clearAuth();
+      window.location.href = "index.html";
+    });
+  }
+}
+
+updateNavbar();

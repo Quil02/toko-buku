@@ -1,8 +1,11 @@
 import { loginRequest } from '../api/authApi.js';
 import { setAuth, isAuthenticated } from '../utils/authStorage.js';
 
+const params = new URLSearchParams(window.location.search);
+const redirectUrl = params.get('redirect') || 'index.html';
+
 if (isAuthenticated()) {
-  window.location.href = 'index.html';
+  window.location.href = redirectUrl;
 }
 
 const loginForm = document.getElementById('loginForm');
@@ -53,7 +56,7 @@ if (loginForm) {
         setAuth(res.token, res.user);
         showAlert('Login berhasil! Mengalihkan...', 'success');
         setTimeout(() => {
-          window.location.href = 'index.html';
+          window.location.href = redirectUrl;
         }, 800);
       }
     } catch (error) {

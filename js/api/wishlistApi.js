@@ -1,13 +1,20 @@
 /**
  * Wishlist API Service
  * Mengelola data daftar keinginan pengguna via localStorage
+ * Data dipisah per akun menggunakan identifier unik user
  */
 
-const WISHLIST_STORAGE_KEY = 'bookstore_user_wishlist';
+import { getUser } from '../utils/authStorage.js';
+
+function getWishlistKey() {
+  const user = getUser();
+  const uid = user?.id || user?.email || 'guest';
+  return `bookstore_wishlist_${uid}`;
+}
 
 function getStoredWishlist() {
   try {
-    const raw = localStorage.getItem(WISHLIST_STORAGE_KEY);
+    const raw = localStorage.getItem(getWishlistKey());
     return raw ? JSON.parse(raw) : [];
   } catch (error) {
     console.error('Gagal mengambil wishlist dari localStorage:', error);
@@ -17,15 +24,15 @@ function getStoredWishlist() {
 
 function saveStoredWishlist(items) {
   try {
-    localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(items));
+    localStorage.setItem(getWishlistKey(), JSON.stringify(items));
   } catch (error) {
     console.error('Gagal menyimpan wishlist ke localStorage:', error);
   }
 }
 
 /**
- * Mengambil semua item wishlist
- * @returns {Array} Daftar buku dalam wishlist
+ * Mengambil semua item wishlist milik user yang sedang login
+ * @returns {Array}
  */
 export function getWishlist() {
   return getStoredWishlist();
@@ -80,7 +87,7 @@ export function removeFromWishlist(bookId) {
 
 /**
  * Mengecek apakah buku dengan ID tertentu ada di wishlist
- * @param {string} bookId 
+ * @param {string} bookId
  * @returns {boolean}
  */
 export function isInWishlist(bookId) {
