@@ -1,9 +1,12 @@
 import { CONFIG } from '../config.js';
 
 const ACTIVE_USER_KEY = 'tokobuku_active_user';
+const GUEST_KEY = 'tokobuku_guest';
 
 export function setAuth(token, user) {
   try {
+    // Hapus flag guest saat user login dengan akun
+    localStorage.removeItem(GUEST_KEY);
     if (token) {
       localStorage.setItem(CONFIG.TOKEN_KEY, token);
     }
@@ -45,8 +48,26 @@ export function clearAuth() {
     localStorage.removeItem(CONFIG.TOKEN_KEY);
     localStorage.removeItem(CONFIG.USER_KEY);
     localStorage.removeItem(ACTIVE_USER_KEY);
+    localStorage.removeItem(GUEST_KEY);
   } catch (error) {
     console.error('Failed to clear auth from localStorage:', error);
+  }
+}
+
+
+export function setGuest() {
+  try {
+    localStorage.setItem(GUEST_KEY, 'true');
+  } catch (error) {
+    console.error('Failed to set guest mode:', error);
+  }
+}
+
+export function isGuest() {
+  try {
+    return localStorage.getItem(GUEST_KEY) === 'true';
+  } catch (error) {
+    return false;
   }
 }
 
@@ -55,5 +76,7 @@ export default {
   getToken,
   getUser,
   isAuthenticated,
-  clearAuth
+  clearAuth,
+  setGuest,
+  isGuest,
 };

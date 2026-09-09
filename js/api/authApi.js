@@ -36,19 +36,28 @@ export async function registerRequest(userData) {
   const users = getStoredUsers();
   const normalizedEmail = email.trim().toLowerCase();
 
-  const existingUser = users.find(
+  const normalizedFullName = fullName.trim().toLowerCase();
+
+  const existingByEmail = users.find(
     (u) => u.email.toLowerCase() === normalizedEmail
   );
+  if (existingByEmail) {
+    throw new Error('Email sudah terdaftar. Silakan gunakan email lain atau masuk ke akun Anda.');
+  }
 
-  if (existingUser) {
-    throw new Error('Email sudah terdaftar!');
+  const existingByName = users.find(
+    (u) => u.fullName.toLowerCase() === normalizedFullName
+  );
+  if (existingByName) {
+    throw new Error('Nama pengguna sudah digunakan. Silakan gunakan nama lain.');
   }
 
   const newUser = {
     id: `user_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
     fullName: fullName.trim(),
     email: normalizedEmail,
-    password: password
+    password: password,
+    createdAt: new Date().toISOString()
   };
 
   users.push(newUser);
@@ -70,12 +79,15 @@ export async function loginRequest(emailOrUsername, password) {
   const users = getStoredUsers();
   const target = emailOrUsername.trim().toLowerCase();
 
-  const user = users.find(
-    (u) => (u.email.toLowerCase() === target || u.fullName.toLowerCase() === target) && u.password === password
-  );
+  const isEmail = target.includes('@');
+  const user = users.find((u) => {
+    const matchEmail = u.email.toLowerCase() === target;
+    const matchName = !isEmail && u.fullName.toLowerCase() === target;
+    return (matchEmail || matchName) && u.password === password;
+  });
 
   if (!user) {
-    throw new Error('Email/Username atau password salah!');
+    throw new Error('Email/Username atau kata sandi salah!');
   }
 
   return {

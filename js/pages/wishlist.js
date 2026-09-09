@@ -2,7 +2,14 @@
  * Logika Halaman Wishlist
  */
 import { getWishlist, removeFromWishlist } from '../api/wishlistApi.js';
-import { isAuthenticated, getUser, clearAuth } from '../utils/authStorage.js';
+import { isAuthenticated, isGuest, getUser, clearAuth } from '../utils/authStorage.js';
+
+// Guard: hanya user yang sudah login yang bisa mengakses wishlist
+if (!isAuthenticated() || isGuest()) {
+  const redirectTarget = encodeURIComponent(window.location.href);
+  window.location.href = `login.html?redirect=${redirectTarget}`;
+}
+
 
 const wishlistGrid = document.getElementById('wishlistGrid');
 const wishlistTotalBadge = document.getElementById('wishlistTotalBadge');

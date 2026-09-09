@@ -21,7 +21,6 @@ export const PAYMENT_METHOD_LABELS = {
   gopay: 'GoPay',
   ovo: 'OVO',
   dana: 'DANA',
-  cod: 'Bayar di Tempat (COD)',
 };
 
 /**

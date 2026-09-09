@@ -1,5 +1,5 @@
 import { fetchBooks } from '../api/bookApi.js';
-import { getUser, isAuthenticated, clearAuth } from '../utils/authStorage.js';
+import { getUser, isAuthenticated, isGuest, clearAuth } from '../utils/authStorage.js';
 
 let allBooks = [];
 let debounceTimer = null;
@@ -30,6 +30,20 @@ function formatRupiah(amount) {
  * Inisialisasi navbar berdasarkan status autentikasi pengguna
  */
 function initNavbarAuth() {
+  // Render nav links sesuai status login
+  const navEl = document.querySelector('.navbar-nav');
+  if (navEl) {
+    if (isAuthenticated()) {
+      navEl.innerHTML = `
+        <a href="index.html" class="nav-link">Katalog</a>
+        <a href="wishlist.html" class="nav-link">Wishlist</a>
+        <a href="history.html" class="nav-link">Riwayat Pembelian</a>
+      `;
+    } else {
+      navEl.innerHTML = `<a href="index.html" class="nav-link">Katalog</a>`;
+    }
+  }
+
   if (!authNavContainer) return;
 
   if (isAuthenticated()) {
@@ -39,11 +53,15 @@ function initNavbarAuth() {
       <span style="font-size: 0.9rem; font-weight: 600; color: #4b5563;">Halo, ${displayName}</span>
       <button class="btn btn-outline" id="btnLogout" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Keluar</button>
     `;
-
     document.getElementById('btnLogout')?.addEventListener('click', () => {
       clearAuth();
       window.location.reload();
     });
+  } else {
+    authNavContainer.innerHTML = `
+      <a href="login.html" class="btn btn-outline">Masuk</a>
+      <a href="register.html" class="btn btn-primary">Daftar</a>
+    `;
   }
 }
 

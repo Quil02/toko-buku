@@ -1,5 +1,5 @@
 import { registerRequest } from '../api/authApi.js';
-import { isAuthenticated } from '../utils/authStorage.js';
+import { isAuthenticated, isGuest, setGuest } from '../utils/authStorage.js';
 
 if (isAuthenticated()) {
   window.location.href = 'index.html';
@@ -73,5 +73,14 @@ if (registerForm) {
       setLoading(false);
       showAlert(error.message || 'Terjadi kesalahan saat registrasi.', 'danger');
     }
+  });
+}
+
+const guestBtn = document.getElementById('guestBtn');
+
+if (guestBtn) {
+  guestBtn.addEventListener('click', () => {
+    setGuest();
+    window.location.href = 'index.html';
   });
 }

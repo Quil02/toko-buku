@@ -1,6 +1,6 @@
 import { fetchBookById } from '../api/bookApi.js';
 import { addToWishlist, isInWishlist, removeFromWishlist } from '../api/wishlistApi.js';
-import { getUser, isAuthenticated, clearAuth } from '../utils/authStorage.js';
+import { getUser, isAuthenticated, isGuest, clearAuth } from '../utils/authStorage.js';
 
 const breadcrumbTitle = document.getElementById('breadcrumbTitle');
 const bookDetailWrapper = document.getElementById('bookDetailWrapper');
@@ -35,6 +35,20 @@ function buildCheckoutUrl(book) {
  * Inisialisasi status navbar
  */
 function initNavbarAuth() {
+  // Nav links
+  const navEl = document.querySelector('.navbar-nav');
+  if (navEl) {
+    if (isAuthenticated()) {
+      navEl.innerHTML = `
+        <a href="index.html" class="nav-link">Katalog</a>
+        <a href="wishlist.html" class="nav-link">Wishlist</a>
+        <a href="history.html" class="nav-link">Riwayat Pembelian</a>
+      `;
+    } else {
+      navEl.innerHTML = `<a href="index.html" class="nav-link">Katalog</a>`;
+    }
+  }
+
   if (!authNavContainer) return;
 
   if (isAuthenticated()) {
@@ -44,11 +58,15 @@ function initNavbarAuth() {
       <span style="font-size: 0.9rem; font-weight: 600; color: #4b5563;">Halo, ${displayName}</span>
       <button class="btn btn-outline" id="btnLogout" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Keluar</button>
     `;
-
     document.getElementById('btnLogout')?.addEventListener('click', () => {
       clearAuth();
       window.location.reload();
     });
+  } else {
+    authNavContainer.innerHTML = `
+      <a href="login.html" class="btn btn-outline">Masuk</a>
+      <a href="register.html" class="btn btn-primary">Daftar</a>
+    `;
   }
 }
 
@@ -98,10 +116,14 @@ async function loadBookDetail() {
           </div>
 
           <div class="book-detail-actions">
-            <a href="${checkoutUrl}" class="btn btn-primary" id="btnBuyNow">🛒 Beli Sekarang</a>
-            <button class="btn btn-outline" id="btnWishlist">
-              ${alreadyInWishlist ? '❤️ Sudah di Wishlist' : '🤍 Tambah ke Wishlist'}
-            </button>
+            ${isAuthenticated()
+              ? `<a href="${checkoutUrl}" class="btn btn-primary" id="btnBuyNow">🛒 Beli Sekarang</a>
+                 <button class="btn btn-outline" id="btnWishlist">
+                   ${alreadyInWishlist ? '❤️ Sudah di Wishlist' : '🤍 Tambah ke Wishlist'}
+                 </button>`
+              : `<a href="login.html?redirect=${encodeURIComponent(window.location.href)}" class="btn btn-primary">Masuk untuk Membeli</a>
+                 <a href="login.html?redirect=${encodeURIComponent(window.location.href)}" class="btn btn-outline">Masuk untuk Wishlist</a>`
+            }
           </div>
 
           <div class="book-metadata-grid">
@@ -127,17 +149,19 @@ async function loadBookDetail() {
       </section>
     `;
 
-    // Tombol Wishlist
-    const btnWishlist = document.getElementById('btnWishlist');
-    btnWishlist?.addEventListener('click', () => {
-      if (isInWishlist(book.id)) {
-        removeFromWishlist(book.id);
-        btnWishlist.textContent = '🤍 Tambah ke Wishlist';
-      } else {
-        addToWishlist(book);
-        btnWishlist.textContent = '❤️ Sudah di Wishlist';
-      }
-    });
+    // Tombol Wishlist — hanya aktif untuk user yang login
+    if (isAuthenticated()) {
+      const btnWishlist = document.getElementById('btnWishlist');
+      btnWishlist?.addEventListener('click', () => {
+        if (isInWishlist(book.id)) {
+          removeFromWishlist(book.id);
+          btnWishlist.textContent = '🤍 Tambah ke Wishlist';
+        } else {
+          addToWishlist(book);
+          btnWishlist.textContent = '❤️ Sudah di Wishlist';
+        }
+      });
+    }
 
   } catch (error) {
     breadcrumbTitle.textContent = 'Kesalahan';

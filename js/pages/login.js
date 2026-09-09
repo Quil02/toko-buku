@@ -1,5 +1,5 @@
 import { loginRequest } from '../api/authApi.js';
-import { setAuth, isAuthenticated } from '../utils/authStorage.js';
+import { setAuth, isAuthenticated, setGuest, isGuest } from '../utils/authStorage.js';
 
 const params = new URLSearchParams(window.location.search);
 const redirectUrl = params.get('redirect') || 'index.html';
@@ -63,5 +63,14 @@ if (loginForm) {
       setLoading(false);
       showAlert(error.message || 'Terjadi kesalahan saat masuk.', 'danger');
     }
+  });
+}
+
+const guestBtn = document.getElementById('guestBtn');
+
+if (guestBtn) {
+  guestBtn.addEventListener('click', () => {
+    setGuest();
+    window.location.href = 'index.html';
   });
 }

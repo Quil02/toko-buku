@@ -4,7 +4,13 @@ import {
   formatRupiah,
   formatDate,
 } from "../api/paymentApi.js";
-import { getUser, isAuthenticated, clearAuth } from "../utils/authStorage.js";
+import { getUser, isAuthenticated, isGuest, clearAuth } from "../utils/authStorage.js";
+
+// Guard: hanya user yang sudah login yang bisa mengakses riwayat
+if (!isAuthenticated() || isGuest()) {
+  const redirectTarget = encodeURIComponent(window.location.href);
+  window.location.href = `login.html?redirect=${redirectTarget}`;
+}
 
 const historyListEl = document.getElementById("historyList");
 const btnClearHistory = document.getElementById("btnClearHistory");

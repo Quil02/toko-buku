@@ -4,7 +4,7 @@ import {
   savePayment,
   PAYMENT_METHOD_LABELS,
 } from "../api/paymentApi.js";
-import { getUser, isAuthenticated, clearAuth } from "../utils/authStorage.js";
+import { getUser, isAuthenticated, isGuest, clearAuth } from "../utils/authStorage.js";
 
 // ---- Elemen DOM ----
 const orderBookInfoEl = document.getElementById("orderBookInfo");
@@ -37,7 +37,7 @@ const currentPaymentId = generatePaymentId();
 
 // ---- Isi form dari data user yang login ----
 function prefillUserData() {
-  if (!isAuthenticated()) {
+  if (!isAuthenticated() || isGuest()) {
     showAlert(
       "Anda harus login terlebih dahulu untuk melakukan pembelian.",
       "danger"
