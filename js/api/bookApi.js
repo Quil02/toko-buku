@@ -22,6 +22,16 @@ function generatePriceFromId(id = '') {
 }
 
 /**
+ * Menghasilkan halaman acak untuk variasi hasil setiap refresh
+ * @param {number} min 
+ * @param {number} max 
+ * @returns {number}
+ */
+function getRandomPage(min = 1, max = 10) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+/**
  * Ekstrak ID bersih dari Open Library key (misal '/works/OL45804W' -> 'OL45804W')
  * @param {string} key 
  * @returns {string}
@@ -165,17 +175,23 @@ export function normalizeWorkDetail(item, workId, extraDoc = null) {
 
 /**
  * Mengambil daftar buku dari Open Library Search API
+ * Setiap kali dipanggil tanpa page eksplisit, akan menggunakan halaman acak
+ * sehingga hasil buku berbeda setiap refresh.
  * @param {Object} options 
  * @param {string} options.query
  * @param {string} options.category
  * @param {number} options.maxResults
- * @param {number} options.page
+ * @param {number|null} options.page - Jika null, akan diacak otomatis
  * @returns {Promise<Array>}
  */
-export async function fetchBooks({ query = 'programming', category = '', maxResults = 20, page = 1 } = {}) {
+export async function fetchBooks({ query = 'programming', category = '', maxResults = 20, page = null } = {}) {
   try {
     let searchParam = query.trim() || 'programming';
-    let url = `${OPEN_LIBRARY_BASE_URL}/search.json?q=${encodeURIComponent(searchParam)}&limit=${maxResults}&page=${page}`;
+
+    // Jika page tidak diberikan, gunakan halaman acak agar hasil berubah tiap refresh
+    const randomizedPage = page !== null ? page : getRandomPage(1, 10);
+
+    let url = `${OPEN_LIBRARY_BASE_URL}/search.json?q=${encodeURIComponent(searchParam)}&limit=${maxResults}&page=${randomizedPage}`;
 
     if (category) {
       url += `&subject=${encodeURIComponent(category)}`;
@@ -191,7 +207,9 @@ export async function fetchBooks({ query = 'programming', category = '', maxResu
       return [];
     }
 
-    return data.docs.map(normalizeBookData).filter(Boolean);
+    // Acak urutan tampilan buku agar semakin bervariasi
+    const books = data.docs.map(normalizeBookData).filter(Boolean);
+    return books.sort(() => Math.random() - 0.5);
   } catch (error) {
     console.error('Error fetching books from Open Library:', error);
     throw error;
