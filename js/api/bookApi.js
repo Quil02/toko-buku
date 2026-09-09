@@ -53,6 +53,7 @@ export function normalizeBookData(doc) {
   const id = extractWorkId(rawKey) || (doc.cover_edition_key || Math.random().toString(36).substring(2, 9));
 
   // Thumbnail cover dari Open Library
+  const hasRealCover = !!(doc.cover_i || doc.cover_id);
   let thumbnail = 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&auto=format&fit=crop&q=80';
   if (doc.cover_i) {
     thumbnail = `${OPEN_LIBRARY_COVERS_URL}/${doc.cover_i}-L.jpg`;
@@ -101,6 +102,7 @@ export function normalizeBookData(doc) {
     rating,
     ratingsCount,
     price,
+    hasRealCover,
     previewLink: `https://openlibrary.org/works/${id}`
   };
 }
@@ -208,7 +210,7 @@ export async function fetchBooks({ query = 'programming', category = '', maxResu
     }
 
     // Acak urutan tampilan buku agar semakin bervariasi
-    const books = data.docs.map(normalizeBookData).filter(Boolean);
+    const books = data.docs.map(normalizeBookData).filter(b => b && b.hasRealCover);
     return books.sort(() => Math.random() - 0.5);
   } catch (error) {
     console.error('Error fetching books from Open Library:', error);
