@@ -18,6 +18,20 @@ function formatRupiah(amount) {
   }).format(amount || 0);
 }
 
+/**
+ * Buat URL checkout dari data buku
+ */
+function buildCheckoutUrl(item) {
+  const params = new URLSearchParams({
+    id: item.id,
+    title: item.title,
+    author: Array.isArray(item.authors) ? item.authors[0] : (item.authors || 'Anonim'),
+    thumbnail: item.thumbnail,
+    price: item.price,
+  });
+  return `checkout.html?${params.toString()}`;
+}
+
 function initNavbarAuth() {
   if (!authNavContainer) return;
 
@@ -70,6 +84,7 @@ function renderWishlist() {
 
   wishlistGrid.innerHTML = items.map(item => {
     const authors = Array.isArray(item.authors) ? item.authors.join(', ') : (item.authors || 'Anonim');
+    const checkoutUrl = buildCheckoutUrl(item);
 
     return `
       <article class="wishlist-card" data-id="${item.id}">
@@ -88,7 +103,7 @@ function renderWishlist() {
           </div>
           <div class="wishlist-card-actions">
             <a href="book-detail.html?id=${item.id}" class="btn btn-outline">Detail</a>
-            <a href="book-detail.html?id=${item.id}" class="btn btn-primary">Beli</a>
+            <a href="${checkoutUrl}" class="btn btn-primary">🛒 Beli</a>
           </div>
         </div>
       </article>

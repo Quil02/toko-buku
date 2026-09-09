@@ -18,6 +18,20 @@ function formatRupiah(amount) {
 }
 
 /**
+ * Buat URL checkout dari data buku
+ */
+function buildCheckoutUrl(book) {
+  const params = new URLSearchParams({
+    id: book.id,
+    title: book.title,
+    author: Array.isArray(book.authors) ? book.authors[0] : book.authors,
+    thumbnail: book.thumbnail,
+    price: book.price,
+  });
+  return `checkout.html?${params.toString()}`;
+}
+
+/**
  * Inisialisasi status navbar
  */
 function initNavbarAuth() {
@@ -64,6 +78,7 @@ async function loadBookDetail() {
     document.title = `${book.title} - TokoBuku`;
 
     const alreadyInWishlist = isInWishlist(book.id);
+    const checkoutUrl = buildCheckoutUrl(book);
 
     bookDetailWrapper.innerHTML = `
       <section class="book-detail-main">
@@ -83,7 +98,7 @@ async function loadBookDetail() {
           </div>
 
           <div class="book-detail-actions">
-            <button class="btn btn-primary" id="btnBuyNow">🛒 Beli Sekarang</button>
+            <a href="${checkoutUrl}" class="btn btn-primary" id="btnBuyNow">🛒 Beli Sekarang</a>
             <button class="btn btn-outline" id="btnWishlist">
               ${alreadyInWishlist ? '❤️ Sudah di Wishlist' : '🤍 Tambah ke Wishlist'}
             </button>
@@ -112,11 +127,7 @@ async function loadBookDetail() {
       </section>
     `;
 
-    // Tombol aksi interaktif
-    document.getElementById('btnBuyNow')?.addEventListener('click', () => {
-      alert(`Buku "${book.title}" telah ditambahkan ke keranjang belanja.`);
-    });
-
+    // Tombol Wishlist
     const btnWishlist = document.getElementById('btnWishlist');
     btnWishlist?.addEventListener('click', () => {
       if (isInWishlist(book.id)) {
