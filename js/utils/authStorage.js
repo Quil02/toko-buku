@@ -1,5 +1,7 @@
 import { CONFIG } from '../config.js';
 
+const ACTIVE_USER_KEY = 'tokobuku_active_user';
+
 export function setAuth(token, user) {
   try {
     if (token) {
@@ -7,6 +9,8 @@ export function setAuth(token, user) {
     }
     if (user) {
       localStorage.setItem(CONFIG.USER_KEY, JSON.stringify(user));
+      // Simpan juga sebagai active user untuk diakses di checkout
+      localStorage.setItem(ACTIVE_USER_KEY, JSON.stringify(user));
     }
   } catch (error) {
     console.error('Failed to save auth to localStorage:', error);
@@ -24,7 +28,7 @@ export function getToken() {
 
 export function getUser() {
   try {
-    const userRaw = localStorage.getItem(CONFIG.USER_KEY);
+    const userRaw = localStorage.getItem(ACTIVE_USER_KEY);
     return userRaw ? JSON.parse(userRaw) : null;
   } catch (error) {
     console.error('Failed to parse user from localStorage:', error);
@@ -40,6 +44,7 @@ export function clearAuth() {
   try {
     localStorage.removeItem(CONFIG.TOKEN_KEY);
     localStorage.removeItem(CONFIG.USER_KEY);
+    localStorage.removeItem(ACTIVE_USER_KEY);
   } catch (error) {
     console.error('Failed to clear auth from localStorage:', error);
   }
