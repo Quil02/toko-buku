@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Riwayat Pembelian - TokoBuku Online</title>
+
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/checkout.css" />
+  </head>
+
+  <body>
+    <header class="navbar">
+      <div class="container">
+        <a href="index.html" class="navbar-brand"> 📚 <span>TokoBuku</span> </a>
+
+        <nav class="navbar-nav">
+          <a href="index.html" class="nav-link">Katalog</a>
+          <a href="wishlist.html" class="nav-link">Wishlist</a>
+          <a href="history.html" class="nav-link active">Riwayat Pembelian</a>
+        </nav>
+
+        <div class="navbar-user" id="authNavContainer">
+          <a href="login.html" class="btn btn-outline">Masuk</a>
+          <a href="register.html" class="btn btn-primary">Daftar</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="checkout-main">
+      <div class="container">
+        <div class="history-header">
+          <h1>📜 Riwayat Pembelian</h1>
+
+          <button id="btnClearHistory" class="btn btn-outline btn-danger">
+            🗑️ Hapus Semua
+          </button>
+        </div>
+
+        <div id="historyList" class="history-list">
+          <!-- Diisi oleh history.js -->
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-bottom">
+        <p>&copy; 2025 TokoBuku Online Modern. Semua hak cipta dilindungi.</p>
+      </div>
+    </footer>
+
+    <script type="module" src="js/pages/history.js"></script>
+  </body>
+</html>

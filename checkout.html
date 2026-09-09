@@ -1,12 +1,11 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title></title>
+    <title>Checkout - TokoBuku Online</title>
 
     <link rel="stylesheet" href="css/main.css" />
-
     <link rel="stylesheet" href="css/checkout.css" />
   </head>
 
@@ -17,15 +16,12 @@
 
         <nav class="navbar-nav">
           <a href="index.html" class="nav-link">Katalog</a>
-
           <a href="wishlist.html" class="nav-link">Wishlist</a>
-
-          <a href="history.html" class="nav-link active">Riwayat Pembelian</a>
+          <a href="history.html" class="nav-link">Riwayat Pembelian</a>
         </nav>
 
         <div class="navbar-user" id="authNavContainer">
           <a href="login.html" class="btn btn-outline">Masuk</a>
-
           <a href="register.html" class="btn btn-primary">Daftar</a>
         </div>
       </div>
@@ -33,19 +29,172 @@
 
     <main class="checkout-main">
       <div class="container">
-        <div class="history-header">
-          <h1>📜 Riwayat Pembelian</h1>
+        <h1 class="checkout-title">🛒 Checkout</h1>
 
-          <button id="btnClearHistory" class="btn btn-outline btn-danger">
-            🗑️ Hapus Semua
-          </button>
-        </div>
+        <div id="checkoutAlert" class="checkout-alert hidden"></div>
 
-        <div id="historyList" class="history-list">
-          <!-- Diisi oleh history.js -->
+        <div class="checkout-layout">
+          <!-- Kolom Kiri: Form -->
+          <div class="checkout-form-col">
+            <!-- Data Pembeli -->
+            <div class="form-card">
+              <div class="form-section-title">📋 Data Pembeli</div>
+
+              <div class="form-group">
+                <label for="buyerName">Nama Lengkap</label>
+                <input type="text" id="buyerName" placeholder="Masukkan nama lengkap Anda" />
+              </div>
+
+              <div class="form-group">
+                <label for="buyerEmail">Email</label>
+                <input type="email" id="buyerEmail" placeholder="contoh@email.com" />
+              </div>
+
+              <div class="form-group">
+                <label for="buyerPhone">Nomor Telepon</label>
+                <input type="tel" id="buyerPhone" placeholder="08xxxxxxxxxx" />
+              </div>
+
+              <div class="form-group">
+                <label for="buyerAddress">Alamat Pengiriman</label>
+                <textarea id="buyerAddress" rows="3" placeholder="Masukkan alamat lengkap pengiriman"></textarea>
+              </div>
+            </div>
+
+            <!-- Metode Pembayaran -->
+            <div class="form-card">
+              <div class="form-section-title">💳 Metode Pembayaran</div>
+
+              <div class="payment-methods">
+                <label class="payment-option">
+                  <input type="radio" name="paymentMethod" value="bca" />
+                  <div class="payment-option-content">
+                    <span class="payment-icon">🏦</span>
+                    <div>
+                      <div class="payment-name">Transfer Bank BCA</div>
+                      <div class="payment-desc">Transfer via ATM, Mobile Banking, atau Internet Banking</div>
+                    </div>
+                  </div>
+                </label>
+
+                <label class="payment-option">
+                  <input type="radio" name="paymentMethod" value="mandiri" />
+                  <div class="payment-option-content">
+                    <span class="payment-icon">🏦</span>
+                    <div>
+                      <div class="payment-name">Transfer Bank Mandiri</div>
+                      <div class="payment-desc">Transfer via ATM, Mobile Banking, atau Internet Banking</div>
+                    </div>
+                  </div>
+                </label>
+
+                <label class="payment-option">
+                  <input type="radio" name="paymentMethod" value="gopay" />
+                  <div class="payment-option-content">
+                    <span class="payment-icon">💚</span>
+                    <div>
+                      <div class="payment-name">GoPay</div>
+                      <div class="payment-desc">Bayar menggunakan saldo GoPay</div>
+                    </div>
+                  </div>
+                </label>
+
+                <label class="payment-option">
+                  <input type="radio" name="paymentMethod" value="ovo" />
+                  <div class="payment-option-content">
+                    <span class="payment-icon">💜</span>
+                    <div>
+                      <div class="payment-name">OVO</div>
+                      <div class="payment-desc">Bayar menggunakan saldo OVO</div>
+                    </div>
+                  </div>
+                </label>
+
+                <label class="payment-option">
+                  <input type="radio" name="paymentMethod" value="dana" />
+                  <div class="payment-option-content">
+                    <span class="payment-icon">💙</span>
+                    <div>
+                      <div class="payment-name">DANA</div>
+                      <div class="payment-desc">Bayar menggunakan saldo DANA</div>
+                    </div>
+                  </div>
+                </label>
+
+                <label class="payment-option">
+                  <input type="radio" name="paymentMethod" value="cod" />
+                  <div class="payment-option-content">
+                    <span class="payment-icon">📦</span>
+                    <div>
+                      <div class="payment-name">Bayar di Tempat (COD)</div>
+                      <div class="payment-desc">Bayar tunai saat paket tiba</div>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kolom Kanan: Ringkasan Pesanan -->
+          <div class="order-summary">
+            <div class="form-card">
+              <div class="form-section-title">📦 Ringkasan Pesanan</div>
+
+              <div id="orderBookInfo" class="order-book-info">
+                <!-- Diisi oleh checkout.js -->
+              </div>
+
+              <div class="order-id-wrap">
+                <span class="order-id-label">ID Pesanan</span>
+                <span class="order-id-value" id="orderId">-</span>
+              </div>
+
+              <div class="order-total">
+                <span>Total Pembayaran</span>
+                <span class="order-total-price" id="orderTotal">-</span>
+              </div>
+
+              <button id="btnPay" class="btn btn-primary btn-pay">
+                🔒 Bayar Sekarang
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </main>
+
+    <!-- Modal Sukses -->
+    <div id="successModal" class="modal-overlay hidden">
+      <div class="modal-box">
+        <div class="modal-icon">✅</div>
+        <div class="modal-title">Pembayaran Berhasil!</div>
+        <p class="modal-desc">Terima kasih! Pesanan Anda sedang diproses.</p>
+
+        <div class="modal-detail">
+          <div class="modal-detail-row">
+            <span>ID Pesanan</span>
+            <strong id="modalOrderId">-</strong>
+          </div>
+          <div class="modal-detail-row">
+            <span>Buku</span>
+            <strong id="modalBookTitle">-</strong>
+          </div>
+          <div class="modal-detail-row">
+            <span>Metode Bayar</span>
+            <strong id="modalPaymentMethod">-</strong>
+          </div>
+          <div class="modal-detail-row">
+            <span>Total</span>
+            <strong id="modalTotal">-</strong>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <a href="history.html" class="btn btn-primary">📜 Lihat Riwayat</a>
+          <a href="index.html" class="btn btn-outline">🛍️ Belanja Lagi</a>
+        </div>
+      </div>
+    </div>
 
     <footer class="footer">
       <div class="container footer-bottom">
@@ -53,6 +202,6 @@
       </div>
     </footer>
 
-    <script type="module" src="js/pages/history.js"></script>
+    <script type="module" src="js/pages/checkout.js"></script>
   </body>
 </html>
