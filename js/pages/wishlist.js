@@ -10,12 +10,11 @@ if (!isAuthenticated() || isGuest()) {
   window.location.href = `login.html?redirect=${redirectTarget}`;
 }
 
-
-const wishlistGrid = document.getElementById('wishlistGrid');
+const wishlistGrid       = document.getElementById('wishlistGrid');
 const wishlistTotalBadge = document.getElementById('wishlistTotalBadge');
-const navWishlistCount = document.getElementById('navWishlistCount');
-const authNavContainer = document.getElementById('authNavContainer');
-const authWarning = document.getElementById('authWarning');
+const navWishlistCount   = document.getElementById('navWishlistCount');
+const authNavContainer   = document.getElementById('authNavContainer');
+const authWarning        = document.getElementById('authWarning');
 
 function formatRupiah(amount) {
   return new Intl.NumberFormat('id-ID', {
@@ -25,9 +24,6 @@ function formatRupiah(amount) {
   }).format(amount || 0);
 }
 
-/**
- * Buat URL checkout dari data buku
- */
 function buildCheckoutUrl(item) {
   const params = new URLSearchParams({
     id: item.id,
@@ -73,6 +69,29 @@ function updateWishlistCounter(count) {
   }
 }
 
+/**
+ * Skeleton loading — meniru layout wishlist-card
+ */
+function renderWishlistLoading(count = 6) {
+  wishlistGrid.innerHTML = Array.from({ length: count }).map(() => `
+    <div class="wishlist-card" aria-hidden="true" style="overflow:hidden;">
+      <div class="wishlist-card-cover-wrap">
+        <div class="skeleton" style="width:100%; height:100%; border-radius:0;"></div>
+      </div>
+      <div class="wishlist-card-body" style="display:flex; flex-direction:column; gap:0.65rem;">
+        <div class="skeleton" style="height:11px; width:50%; border-radius:4px;"></div>
+        <div class="skeleton" style="height:15px; width:90%; border-radius:4px;"></div>
+        <div class="skeleton" style="height:13px; width:65%; border-radius:4px;"></div>
+        <div class="skeleton" style="height:20px; width:80px; border-radius:6px; margin-top:0.3rem;"></div>
+        <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+          <div class="skeleton" style="height:34px; flex:1; border-radius:8px;"></div>
+          <div class="skeleton" style="height:34px; flex:1; border-radius:8px;"></div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
 function renderWishlist() {
   const items = getWishlist();
   updateWishlistCounter(items.length);
@@ -94,7 +113,7 @@ function renderWishlist() {
     const checkoutUrl = buildCheckoutUrl(item);
 
     return `
-      <article class="wishlist-card" data-id="${item.id}">
+      <article class="wishlist-card" data-id="${item.id}" style="animation: fadeInUp 0.3s ease both;">
         <div class="wishlist-card-cover-wrap">
           <button class="btn-remove-wishlist" data-id="${item.id}" title="Hapus dari wishlist" aria-label="Hapus">
             ✕
@@ -117,7 +136,6 @@ function renderWishlist() {
     `;
   }).join('');
 
-  // Event handler tombol hapus
   document.querySelectorAll('.btn-remove-wishlist').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -132,5 +150,7 @@ function renderWishlist() {
 
 document.addEventListener('DOMContentLoaded', () => {
   initNavbarAuth();
-  renderWishlist();
+  renderWishlistLoading();
+  // Data dari localStorage = synchronous, tapi skeleton memberi kesan loading yang natural
+  setTimeout(() => renderWishlist(), 350);
 });

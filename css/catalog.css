@@ -421,3 +421,78 @@
 [data-theme="dark"] .catalog-state-desc {
   color: var(--text-muted);
 }
+
+/* =============================================
+   Skeleton Cards — Catalog
+   ============================================= */
+
+.book-card-skeleton {
+  background-color: var(--color-surface, #ffffff);
+  border-radius: var(--radius-lg, 0.75rem);
+  border: 1px solid var(--color-border, #e5e7eb);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.book-card-skeleton .sk-cover {
+  width: 100%;
+  height: 250px;
+}
+
+.book-card-skeleton .sk-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.book-card-skeleton .sk-tag {
+  height: 12px;
+  width: 60px;
+}
+
+.book-card-skeleton .sk-title {
+  height: 14px;
+  width: 90%;
+}
+
+.book-card-skeleton .sk-title-2 {
+  height: 14px;
+  width: 65%;
+}
+
+.book-card-skeleton .sk-author {
+  height: 12px;
+  width: 70%;
+}
+
+.book-card-skeleton .sk-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+.book-card-skeleton .sk-price {
+  height: 18px;
+  width: 80px;
+}
+
+.book-card-skeleton .sk-btn {
+  height: 32px;
+  width: 68px;
+  border-radius: 8px;
+}
+
+/* Dark mode */
+[data-theme="dark"] .book-card-skeleton {
+  background-color: var(--card-background);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .book-card-skeleton .sk-footer {
+  border-top-color: var(--border-color);
+}

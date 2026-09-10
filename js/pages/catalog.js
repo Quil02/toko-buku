@@ -15,9 +15,6 @@ const resetFilterBtn = document.getElementById('resetFilterBtn');
 const categoryFilterGroup = document.getElementById('categoryFilterGroup');
 const authNavContainer = document.getElementById('authNavContainer');
 
-/**
- * Format angka ke mata uang Rupiah
- */
 function formatRupiah(amount) {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
@@ -26,11 +23,7 @@ function formatRupiah(amount) {
   }).format(amount);
 }
 
-/**
- * Inisialisasi navbar berdasarkan status autentikasi pengguna
- */
 function initNavbarAuth() {
-  // Render nav links sesuai status login
   const navEl = document.querySelector('.navbar-nav');
   if (navEl) {
     if (isAuthenticated()) {
@@ -70,21 +63,26 @@ function initNavbarAuth() {
 }
 
 /**
- * Menampilkan status loading pada grid
+ * Render skeleton cards — meniru layout book-card
  */
-function renderLoading() {
-  booksGrid.innerHTML = `
-    <div class="catalog-state">
-      <div class="catalog-state-icon">🔄</div>
-      <h3 class="catalog-state-title">Memuat Koleksi Buku...</h3>
-      <p class="catalog-state-desc">Mengambil data buku langsung dari Open Library.</p>
+function renderLoading(count = 8) {
+  booksGrid.innerHTML = Array.from({ length: count }).map(() => `
+    <div class="book-card-skeleton" aria-hidden="true">
+      <div class="skeleton sk-cover"></div>
+      <div class="sk-body">
+        <div class="skeleton sk-tag"></div>
+        <div class="skeleton sk-title"></div>
+        <div class="skeleton sk-title-2"></div>
+        <div class="skeleton sk-author"></div>
+        <div class="sk-footer">
+          <div class="skeleton sk-price"></div>
+          <div class="skeleton sk-btn"></div>
+        </div>
+      </div>
     </div>
-  `;
+  `).join('');
 }
 
-/**
- * Menampilkan pesan ketika buku tidak ditemukan
- */
 function renderEmpty(message = 'Tidak ada buku yang sesuai dengan filter atau pencarian Anda.') {
   booksGrid.innerHTML = `
     <div class="catalog-state">
@@ -95,9 +93,6 @@ function renderEmpty(message = 'Tidak ada buku yang sesuai dengan filter atau pe
   `;
 }
 
-/**
- * Render array data buku ke grid
- */
 function renderBooks(books) {
   if (!books || books.length === 0) {
     renderEmpty();
@@ -105,7 +100,7 @@ function renderBooks(books) {
   }
 
   booksGrid.innerHTML = books.map(book => `
-    <article class="book-card">
+    <article class="book-card" style="animation: fadeInUp 0.3s ease both;">
       <div class="book-card-cover-wrap">
         <img src="${book.thumbnail}" alt="${book.title}" class="book-card-cover" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&auto=format&fit=crop&q=80'">
       </div>
@@ -122,25 +117,19 @@ function renderBooks(books) {
   `).join('');
 }
 
-/**
- * Filter dan sortir data buku lokal yang sudah di-fetch
- */
 function applyClientFilters() {
   let filtered = [...allBooks];
 
-  // Filter Harga Minimal
   const minPrice = parseFloat(minPriceInput.value);
   if (!isNaN(minPrice) && minPrice >= 0) {
     filtered = filtered.filter(b => b.price >= minPrice);
   }
 
-  // Filter Harga Maksimal
   const maxPrice = parseFloat(maxPriceInput.value);
   if (!isNaN(maxPrice) && maxPrice >= 0) {
     filtered = filtered.filter(b => b.price <= maxPrice);
   }
 
-  // Sorting
   const sortMode = sortSelect.value;
   if (sortMode === 'price-asc') {
     filtered.sort((a, b) => a.price - b.price);
@@ -153,9 +142,6 @@ function applyClientFilters() {
   renderBooks(filtered);
 }
 
-/**
- * Melakukan pemanggilan Open Library API sesuai parameter search dan kategori
- */
 async function loadBooksFromApi() {
   const query = searchInput.value.trim() || 'programming';
   const checkedCategory = document.querySelector('input[name="category"]:checked')?.value || '';

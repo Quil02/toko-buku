@@ -36,6 +36,42 @@ function initNavbarAuth() {
 }
 
 // ---------------------------------------------------------------
+// Render info detail pembayaran
+// ---------------------------------------------------------------
+function renderPaymentDetail(detail) {
+  if (!detail) return "";
+
+  if (detail.type === "bank") {
+    return `
+      <div class="history-payment-detail">
+        <span class="history-detail-label">🏦 Rekening:</span>
+        <span class="history-detail-value">${detail.accountNumber || "-"}</span>
+        <span class="history-detail-sep">·</span>
+        <span class="history-detail-label">Exp:</span>
+        <span class="history-detail-value">${detail.expiry || "-"}</span>
+        <span class="history-detail-sep">·</span>
+        <span class="history-detail-label">CVV:</span>
+        <span class="history-detail-value">${detail.cvv || "***"}</span>
+        <span class="history-detail-sep">·</span>
+        <span class="history-detail-label">a.n.</span>
+        <span class="history-detail-value">${detail.accountName || "-"}</span>
+      </div>
+    `;
+  }
+
+  if (detail.type === "ewallet") {
+    return `
+      <div class="history-payment-detail">
+        <span class="history-detail-label">📱 No. HP:</span>
+        <span class="history-detail-value">${detail.phone || "-"}</span>
+      </div>
+    `;
+  }
+
+  return "";
+}
+
+// ---------------------------------------------------------------
 // Render satu card untuk transaksi buku tunggal
 // ---------------------------------------------------------------
 function renderSingleCard(tx) {
@@ -58,6 +94,7 @@ function renderSingleCard(tx) {
           <span class="history-payment-method">${tx.paymentMethodLabel}</span>
           <span>Pembeli: ${tx.buyer?.name || "-"}</span>
         </div>
+        ${renderPaymentDetail(tx.paymentDetail)}
       </div>
       <div class="history-card-price">
         <div class="history-price-value">${formatRupiah(tx.total)}</div>
@@ -88,6 +125,7 @@ function renderCartGroup(tx) {
         <span class="history-cart-group-date">${dateStr}</span>
       </div>
     </div>
+    ${tx.paymentDetail ? `<div class="history-cart-payment-detail">${renderPaymentDetail(tx.paymentDetail)}</div>` : ""}
   `;
 
   const itemCards = items.map((item, index) => {

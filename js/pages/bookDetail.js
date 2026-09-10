@@ -3,7 +3,7 @@ import { addToWishlist, isInWishlist, removeFromWishlist } from '../api/wishlist
 import { addToCart, isInCart } from '../api/cartApi.js';
 import { getUser, isAuthenticated, isGuest, clearAuth } from '../utils/authStorage.js';
 
-const breadcrumbTitle  = document.getElementById('breadcrumbTitle');
+const breadcrumbTitle   = document.getElementById('breadcrumbTitle');
 const bookDetailWrapper = document.getElementById('bookDetailWrapper');
 const authNavContainer  = document.getElementById('authNavContainer');
 
@@ -65,6 +65,32 @@ function initNavbarAuth() {
   }
 }
 
+/**
+ * Skeleton layout — meniru struktur book-detail-main
+ */
+function renderDetailSkeleton() {
+  bookDetailWrapper.innerHTML = `
+    <div class="book-detail-skeleton" aria-hidden="true">
+      <div class="skeleton sk-cover-wrap"></div>
+      <div class="sk-info">
+        <div class="skeleton sk-badge"></div>
+        <div class="skeleton sk-title"></div>
+        <div class="skeleton sk-title-2"></div>
+        <div class="skeleton sk-author"></div>
+        <div class="skeleton sk-price"></div>
+        <div class="skeleton sk-desc"></div>
+        <div class="skeleton sk-desc-2"></div>
+        <div class="skeleton sk-desc-3"></div>
+        <div class="sk-actions">
+          <div class="skeleton sk-action-btn"></div>
+          <div class="skeleton sk-action-btn"></div>
+          <div class="skeleton sk-action-btn"></div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 async function loadBookDetail() {
   const urlParams = new URLSearchParams(window.location.search);
   const bookId = urlParams.get('id');
@@ -81,6 +107,8 @@ async function loadBookDetail() {
     return;
   }
 
+  renderDetailSkeleton();
+
   try {
     const book = await fetchBookById(bookId);
 
@@ -91,11 +119,10 @@ async function loadBookDetail() {
     const alreadyInCart     = isInCart(book.id);
     const checkoutUrl       = buildCheckoutUrl(book);
 
-    // Tombol "Tambah ke Keranjang" tersedia untuk semua (guest & user)
     const cartBtnLabel = alreadyInCart ? '✅ Sudah di Keranjang' : '🛒 Tambah ke Keranjang';
 
     bookDetailWrapper.innerHTML = `
-      <section class="book-detail-main">
+      <section class="book-detail-main" style="animation: fadeInUp 0.35s ease both;">
         <div class="book-detail-cover-area">
           <div class="book-detail-cover-wrap">
             <img src="${book.thumbnail}" alt="${book.title}" class="book-detail-cover" onerror="this.src='https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&auto=format&fit=crop&q=80'">
@@ -148,7 +175,6 @@ async function loadBookDetail() {
       </section>
     `;
 
-    // Tombol Tambah ke Keranjang (guest & user bisa)
     const btnAddToCart = document.getElementById('btnAddToCart');
     btnAddToCart?.addEventListener('click', () => {
       if (isInCart(book.id)) {
@@ -161,7 +187,6 @@ async function loadBookDetail() {
       btnAddToCart.style.color = '#10b981';
     });
 
-    // Tombol Wishlist — hanya untuk user login
     if (isAuthenticated()) {
       const btnWishlist = document.getElementById('btnWishlist');
       btnWishlist?.addEventListener('click', () => {

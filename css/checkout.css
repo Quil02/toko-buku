@@ -969,3 +969,87 @@
 [data-theme="dark"] .cart-order-author {
   color: var(--text-muted);
 }
+
+/* =============================================
+   Info Detail Pembayaran di Riwayat
+   ============================================= */
+
+.history-payment-detail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.5rem;
+  margin-top: 0.45rem;
+  padding: 0.4rem 0.65rem;
+  background: #f3f4f6;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  color: #374151;
+}
+
+.history-detail-label {
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.history-detail-value {
+  font-family: monospace;
+  color: #1e293b;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.history-detail-sep {
+  color: #d1d5db;
+  font-weight: 700;
+}
+
+/* Wrapper detail di cart group — tampil di bawah header */
+.history-cart-payment-detail {
+  padding: 0 1rem 0.75rem;
+}
+
+.history-cart-payment-detail .history-payment-detail {
+  border-radius: 6px;
+}
+
+/* Dark mode */
+[data-theme="dark"] .history-payment-detail {
+  background: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .history-detail-label {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .history-detail-value {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .history-detail-sep {
+  color: #475569;
+}
+
+/* =============================================
+   Spinner di dalam tombol (btn-pay)
+   ============================================= */
+
+.btn-pay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-pay .spinner {
+  flex-shrink: 0;
+}
+
+/* Spinner di dalam btn-checkout-cart (cart page) */
+.btn-checkout-cart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
