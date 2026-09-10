@@ -2,7 +2,7 @@ const OPEN_LIBRARY_BASE_URL = 'https://openlibrary.org';
 const OPEN_LIBRARY_COVERS_URL = 'https://covers.openlibrary.org/b/id';
 
 /**
- * Menghasilkan harga deterministik realistis (Rp 65.000 - Rp 185.000) berdasarkan string ID
+ * Menghasilkan harga deterministik realistis (Rp 7.000 - Rp 20.000) berdasarkan string ID
  * @param {string} id 
  * @returns {number}
  */
@@ -13,9 +13,9 @@ function generatePriceFromId(id = '') {
     hash |= 0;
   }
   const positiveHash = Math.abs(hash);
-  const minPrice = 65000;
-  const maxPrice = 185000;
-  const step = 5000;
+  const minPrice = 7000;
+  const maxPrice = 20000;
+  const step = 1000;
   const rangeSteps = (maxPrice - minPrice) / step;
   const price = minPrice + (positiveHash % (rangeSteps + 1)) * step;
   return price;
