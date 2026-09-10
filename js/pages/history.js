@@ -25,7 +25,7 @@ function initNavbarAuth() {
     const user = getUser();
     const displayName = user?.fullName || user?.username || user?.email || "Akun Saya";
     authNavContainer.innerHTML = `
-      <span style="font-size: 0.9rem; font-weight: 600; color: #4b5563;">Halo, ${displayName}</span>
+      <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">Halo, ${displayName}</span>
       <button class="btn btn-outline" id="btnLogout" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Keluar</button>
     `;
     document.getElementById("btnLogout")?.addEventListener("click", () => {

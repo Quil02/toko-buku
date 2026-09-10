@@ -50,7 +50,7 @@ function initNavbarAuth() {
     const user = getUser();
     const displayName = user?.fullName || user?.email || 'Akun Saya';
     authNavContainer.innerHTML = `
-      <span style="font-size: 0.9rem; font-weight: 600; color: #4b5563;">Halo, ${displayName}</span>
+      <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">Halo, ${displayName}</span>
       <button class="btn btn-outline" id="btnLogout" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Keluar</button>
     `;
     document.getElementById('btnLogout')?.addEventListener('click', () => {
@@ -101,7 +101,7 @@ async function loadBookDetail() {
       <div class="catalog-state">
         <div class="catalog-state-icon">⚠️</div>
         <h3 class="catalog-state-title">ID Buku Tidak Valid</h3>
-        <p class="catalog-state-desc">Silakan kembali ke halaman <a href="index.html" style="color: #2563eb;">Katalog</a> dan pilih buku yang diinginkan.</p>
+        <p class="catalog-state-desc">Silakan kembali ke halaman <a href="index.html" style="color: var(--primary);">Katalog</a> dan pilih buku yang diinginkan.</p>
       </div>
     `;
     return;
@@ -141,7 +141,7 @@ async function loadBookDetail() {
           <div class="book-detail-actions">
             ${isAuthenticated()
               ? `<a href="${checkoutUrl}" class="btn btn-primary" id="btnBuyNow">⚡ Beli Langsung</a>
-                 <button class="btn btn-outline" id="btnAddToCart" style="border-color:#2563eb; color:#2563eb;">
+                 <button class="btn btn-outline" id="btnAddToCart" style="border-color:var(--primary); color:var(--primary);">
                    ${cartBtnLabel}
                  </button>
                  <button class="btn btn-outline" id="btnWishlist">
@@ -183,8 +183,8 @@ async function loadBookDetail() {
       }
       addToCart(book);
       btnAddToCart.textContent = '✅ Sudah di Keranjang';
-      btnAddToCart.style.borderColor = '#10b981';
-      btnAddToCart.style.color = '#10b981';
+      btnAddToCart.style.borderColor = 'var(--success)';
+      btnAddToCart.style.color = 'var(--success)';
     });
 
     if (isAuthenticated()) {

@@ -1,979 +1,422 @@
-/* =============================================
+/* ==========================================================================
+   Checkout & History Page Styles
+   ========================================================================== */
 
-   CHECKOUT & HISTORY PAGE STYLES
-
-   ============================================= */
-
+/* ---- Page Shell ---- */
 .checkout-main {
   padding: 2rem 0 4rem;
-
   min-height: calc(100vh - 140px);
-
-  background: var(--bg-secondary, #f8f9fa);
+  background-color: var(--bg);
 }
 
 .checkout-title {
   font-size: 1.8rem;
-
   font-weight: 700;
-
   margin-bottom: 1.5rem;
-
-  color: var(--text-primary, #1a1a2e);
+  color: var(--text);
 }
 
 .checkout-layout {
   display: grid;
-
   grid-template-columns: 1fr 360px;
-
   gap: 1.5rem;
-
   align-items: start;
 }
-
-@media (max-width: 768px) {
-  .checkout-layout {
-    grid-template-columns: 1fr;
-  }
-}
+@media (max-width: 768px) { .checkout-layout { grid-template-columns: 1fr; } }
 
 /* ---- Form Card ---- */
-
 .form-card {
-  background: #fff;
-
-  border-radius: 12px;
-
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
-
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
-
+  box-shadow: var(--shadow-sm);
   margin-bottom: 1.25rem;
 }
 
 .form-section-title {
-  font-size: 1.1rem;
-
-  font-weight: 600;
-
+  font-size: 1.05rem;
+  font-weight: 700;
   margin-bottom: 1.2rem;
-
-  color: var(--text-primary, #1a1a2e);
-
-  border-bottom: 2px solid var(--primary-color, #6c63ff);
-
+  color: var(--text);
+  border-bottom: 2px solid var(--primary);
   padding-bottom: 0.5rem;
 }
 
-.form-group {
-  margin-bottom: 1rem;
-}
+.form-group { margin-bottom: 1rem; }
 
 .form-group label {
   display: block;
-
   font-size: 0.875rem;
-
   font-weight: 600;
-
   margin-bottom: 0.4rem;
-
-  color: var(--text-secondary, #555);
+  color: var(--text-muted);
 }
 
 .form-group input,
 .form-group textarea {
   width: 100%;
-
-  padding: 0.6rem 0.9rem;
-
-  border: 1.5px solid #ddd;
-
-  border-radius: 8px;
-
+  padding: 0.65rem 0.9rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
   font-size: 0.95rem;
-
-  transition: border-color 0.2s;
-
+  transition: var(--transition);
   box-sizing: border-box;
-
   font-family: inherit;
-
+  background-color: var(--bg);
+  color: var(--text);
   resize: vertical;
 }
-
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
-
-  border-color: var(--primary-color, #6c63ff);
-
-  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+  border-color: var(--primary);
+  background-color: var(--surface);
+  box-shadow: 0 0 0 3px var(--primary-subtle);
 }
+.form-group input::placeholder { color: var(--text-muted); }
+.form-group input[readonly] { opacity: 0.75; cursor: not-allowed; }
 
-/* ---- Payment Methods ---- */
+/* ---- Payment Detail Sub-sections ---- */
+.payment-detail-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
 
-.payment-methods {
+.payment-detail-info {
   display: flex;
-
-  flex-direction: column;
-
+  align-items: flex-start;
   gap: 0.75rem;
+  padding: 0.75rem;
+  background-color: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
 }
+
+.payment-detail-badge {
+  display: inline-block;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 700;
+  background-color: var(--info-bg);
+  color: var(--info);
+  border: 1px solid var(--info-border);
+  white-space: nowrap;
+}
+.payment-detail-badge.ewallet {
+  background-color: var(--success-bg);
+  color: var(--success);
+  border-color: var(--success-border);
+}
+
+.payment-detail-hint { font-size: 0.83rem; color: var(--text-muted); margin: 0; line-height: 1.5; }
+
+.phone-input-wrap { display: flex; align-items: center; border: 1.5px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: var(--transition); }
+.phone-input-wrap:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-subtle); }
+.phone-prefix {
+  padding: 0.65rem 0.75rem;
+  background-color: var(--surface-2);
+  border-right: 1.5px solid var(--border);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.phone-input-wrap input {
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  flex: 1;
+}
+
+.label-optional { font-weight: 400; font-size: 0.8rem; color: var(--text-muted); }
+
+/* ---- Payment Method Options ---- */
+.payment-methods { display: flex; flex-direction: column; gap: 0.75rem; }
 
 .payment-option {
   display: flex;
-
   align-items: center;
-
   gap: 0.75rem;
-
-  border: 2px solid #eee;
-
-  border-radius: 10px;
-
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
   padding: 0.75rem 1rem;
-
   cursor: pointer;
-
-  transition:
-    border-color 0.2s,
-    background 0.2s;
+  transition: var(--transition);
 }
-
-.payment-option:hover {
-  border-color: var(--primary-color, #6c63ff);
-
-  background: rgba(108, 99, 255, 0.04);
-}
+.payment-option:hover { border-color: var(--primary); background-color: var(--primary-subtle); }
+.payment-option:has(input:checked) { border-color: var(--primary); background-color: var(--primary-subtle); }
 
 .payment-option input[type="radio"] {
   width: auto;
-
-  accent-color: var(--primary-color, #6c63ff);
-
+  accent-color: var(--primary);
   margin: 0;
-
   flex-shrink: 0;
 }
-
-.payment-option input[type="radio"]:checked + .payment-option-content {
-  color: var(--primary-color, #6c63ff);
-}
-
-.payment-option:has(input:checked) {
-  border-color: var(--primary-color, #6c63ff);
-
-  background: rgba(108, 99, 255, 0.06);
-}
-
-.payment-option-content {
-  display: flex;
-
-  align-items: center;
-
-  gap: 0.75rem;
-}
-
-.payment-icon {
-  font-size: 1.4rem;
-}
-
-.payment-name {
-  font-weight: 600;
-
-  font-size: 0.95rem;
-}
-
-.payment-desc {
-  font-size: 0.8rem;
-
-  color: #888;
-}
-
-/* ---- Btn Pay ---- */
-
-.btn-pay {
-  width: 100%;
-
-  padding: 0.85rem;
-
-  font-size: 1.05rem;
-
-  font-weight: 700;
-
-  border-radius: 10px;
-
-  margin-top: 0.5rem;
-}
+.payment-option-content { display: flex; align-items: center; gap: 0.75rem; }
+.payment-icon { font-size: 1.4rem; }
+.payment-name { font-weight: 600; font-size: 0.95rem; color: var(--text); }
+.payment-desc { font-size: 0.8rem; color: var(--text-muted); }
 
 /* ---- Alert ---- */
-
 .checkout-alert {
   padding: 0.75rem 1rem;
-
-  border-radius: 8px;
-
+  border-radius: var(--radius);
   margin-bottom: 1rem;
-
-  font-size: 0.9rem;
-
+  font-size: 0.875rem;
   font-weight: 500;
 }
-
 .checkout-alert.alert-danger {
-  background: #ffe0e0;
-
-  color: #c0392b;
-
-  border: 1px solid #f5b7b1;
+  background-color: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid var(--danger-border);
 }
-
 .checkout-alert.alert-success {
-  background: #e0ffe8;
-
-  color: #1e8449;
-
-  border: 1px solid #a9dfbf;
+  background-color: var(--success-bg);
+  color: var(--success);
+  border: 1px solid var(--success-border);
 }
+.checkout-alert.hidden { display: none; }
 
-.checkout-alert.hidden {
-  display: none;
-}
-
-/* ---- Order Summary ---- */
-
-.order-summary {
-  position: sticky;
-
-  top: 80px;
-}
+/* ---- Order Summary (right column) ---- */
+.order-summary { position: sticky; top: calc(var(--navbar-h) + 1rem); }
 
 .order-book-info {
   display: flex;
-
   gap: 1rem;
-
   margin-bottom: 1.2rem;
-
   padding-bottom: 1rem;
-
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border);
 }
+.order-book-info img { width: 70px; height: 95px; object-fit: cover; border-radius: var(--radius-sm); flex-shrink: 0; }
+.order-book-meta .book-order-title { font-weight: 700; font-size: 0.93rem; margin-bottom: 0.3rem; line-height: 1.3; color: var(--text); }
+.order-book-meta .book-order-author { font-size: 0.8rem; color: var(--text-muted); }
 
-.order-book-info img {
-  width: 70px;
-
-  height: 95px;
-
-  object-fit: cover;
-
-  border-radius: 6px;
-
-  flex-shrink: 0;
-}
-
-.order-book-meta .book-order-title {
-  font-weight: 700;
-
-  font-size: 0.95rem;
-
-  margin-bottom: 0.3rem;
-
-  line-height: 1.3;
-}
-
-.order-book-meta .book-order-author {
-  font-size: 0.8rem;
-
-  color: #888;
-}
-
-.order-id-wrap {
-  display: flex;
-
-  justify-content: space-between;
-
-  align-items: center;
-
-  margin-bottom: 0.75rem;
-
-  font-size: 0.85rem;
-}
-
-.order-id-label {
-  color: #888;
-}
-
-.order-id-value {
-  font-weight: 700;
-
-  font-family: monospace;
-
-  font-size: 0.8rem;
-
-  color: var(--primary-color, #6c63ff);
-
-  word-break: break-all;
-}
+.order-id-wrap { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-size: 0.85rem; }
+.order-id-label { color: var(--text-muted); }
+.order-id-value { font-weight: 700; font-family: monospace; font-size: 0.8rem; color: var(--primary); word-break: break-all; }
 
 .order-total {
   display: flex;
-
   justify-content: space-between;
-
   align-items: center;
-
   padding-top: 0.75rem;
-
-  border-top: 2px solid #eee;
-
+  border-top: 2px solid var(--border);
   font-weight: 700;
-
   font-size: 1.05rem;
+  color: var(--text);
 }
+.order-total-price { color: var(--primary); font-size: 1.15rem; }
 
-.order-total-price {
-  color: var(--primary-color, #6c63ff);
-
-  font-size: 1.15rem;
+/* ---- Pay Button ---- */
+.btn-pay {
+  width: 100%;
+  padding: 0.85rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
+.btn-pay .spinner { flex-shrink: 0; }
 
-/* ---- Modal ---- */
-
+/* ---- Success Modal ---- */
 .modal-overlay {
   position: fixed;
-
   inset: 0;
-
-  background: rgba(0, 0, 0, 0.55);
-
+  background: rgba(0,0,0,0.55);
   display: flex;
-
   align-items: center;
-
   justify-content: center;
-
   z-index: 9999;
-
   padding: 1rem;
 }
-
-.modal-overlay.hidden {
-  display: none;
-}
+.modal-overlay.hidden { display: none; }
 
 .modal-box {
-  background: #fff;
-
-  border-radius: 16px;
-
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
   padding: 2.5rem 2rem;
-
   max-width: 440px;
-
   width: 100%;
-
   text-align: center;
-
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
-
+  box-shadow: var(--shadow-lg);
   animation: modalIn 0.3s ease;
 }
-
 @keyframes modalIn {
-  from {
-    transform: scale(0.85);
-    opacity: 0;
-  }
-
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+  from { transform: scale(0.88); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
 }
 
-.modal-icon {
-  font-size: 3rem;
-
-  margin-bottom: 0.75rem;
-}
-
-.modal-title {
-  font-size: 1.5rem;
-
-  font-weight: 700;
-
-  margin-bottom: 0.4rem;
-
-  color: #1e8449;
-}
-
-.modal-desc {
-  color: #555;
-
-  margin-bottom: 1.25rem;
-
-  font-size: 0.95rem;
-}
+.modal-icon  { font-size: 3rem; margin-bottom: 0.75rem; }
+.modal-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--success); }
+.modal-desc  { color: var(--text-muted); margin-bottom: 1.25rem; font-size: 0.95rem; }
 
 .modal-detail {
-  background: #f8f9fa;
-
-  border-radius: 10px;
-
+  background-color: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   padding: 1rem 1.25rem;
-
   margin-bottom: 1.5rem;
-
   text-align: left;
 }
-
 .modal-detail-row {
   display: flex;
-
   justify-content: space-between;
-
   align-items: center;
-
   padding: 0.4rem 0;
-
   font-size: 0.9rem;
-
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
 }
+.modal-detail-row:last-child { border-bottom: none; }
+.modal-detail-row span { color: var(--text-muted); }
 
-.modal-detail-row:last-child {
-  border-bottom: none;
-}
+.modal-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
 
-.modal-detail-row span {
-  color: #888;
-}
-
-.modal-actions {
-  display: flex;
-
-  gap: 0.75rem;
-
-  justify-content: center;
-
-  flex-wrap: wrap;
-}
-
-/* ---- History Page ---- */
-
-.history-header {
-  display: flex;
-
-  align-items: center;
-
-  justify-content: space-between;
-
-  margin-bottom: 1.5rem;
-
-  flex-wrap: wrap;
-
-  gap: 1rem;
-}
-
-.history-header h1 {
-  font-size: 1.8rem;
-
-  font-weight: 700;
-}
-
-.history-list {
-  display: flex;
-
-  flex-direction: column;
-
-  gap: 1rem;
-}
-
-.history-card {
-  background: #fff;
-
-  border-radius: 12px;
-
-  padding: 1.25rem 1.5rem;
-
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
-
-  display: grid;
-
-  grid-template-columns: 70px 1fr auto;
-
-  gap: 1rem;
-
-  align-items: center;
-}
-
-@media (max-width: 600px) {
-  .history-card {
-    grid-template-columns: 70px 1fr;
-  }
-
-  .history-card-price {
-    grid-column: 1 / -1;
-
-    text-align: right;
-  }
-}
-
-.history-card img {
-  width: 70px;
-
-  height: 95px;
-
-  object-fit: cover;
-
-  border-radius: 6px;
-}
-
-.history-card-info .history-book-title {
-  font-weight: 700;
-
-  font-size: 1rem;
-
-  margin-bottom: 0.3rem;
-}
-
-.history-card-info .history-book-author {
-  font-size: 0.82rem;
-
-  color: #888;
-
-  margin-bottom: 0.5rem;
-}
-
-.history-card-info .history-meta {
-  font-size: 0.8rem;
-
-  color: #aaa;
-
-  display: flex;
-
-  flex-direction: column;
-
-  gap: 0.2rem;
-}
-
-.history-card-info .history-payment-id {
-  font-family: monospace;
-
-  color: var(--primary-color, #6c63ff);
-
-  font-weight: 700;
-}
-
-.history-card-info .history-payment-method {
-  background: #eef;
-
-  color: var(--primary-color, #6c63ff);
-
-  border-radius: 20px;
-
-  padding: 0.2rem 0.6rem;
-
-  display: inline-block;
-
-  font-size: 0.78rem;
-
-  font-weight: 600;
-
-  margin-top: 0.3rem;
-}
-
-.history-card-price {
-  text-align: right;
-}
-
-.history-price-value {
-  font-size: 1.1rem;
-
-  font-weight: 700;
-
-  color: var(--primary-color, #6c63ff);
-}
-
-.history-date {
-  font-size: 0.78rem;
-
-  color: #aaa;
-
-  margin-top: 0.3rem;
-}
-
-.history-empty {
-  text-align: center;
-
-  padding: 4rem 2rem;
-
-  color: #888;
-}
-
-.history-empty-icon {
-  font-size: 3rem;
-
-  margin-bottom: 1rem;
-}
-
-.btn-danger {
-  border-color: #e74c3c;
-
-  color: #e74c3c;
-}
-
-.btn-danger:hover {
-  background: #e74c3c;
-
-  color: #fff;
-}
-
-/* ---- Cart Order Item List (in checkout summary) ---- */
-
-.cart-order-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  overflow: hidden;
-  margin-bottom: 0.5rem;
-}
+/* ---- Cart Order Item List (checkout summary) ---- */
+.cart-order-list { display: flex; flex-direction: column; overflow: hidden; margin-bottom: 0.5rem; }
 
 .cart-order-item {
   display: flex;
   gap: 0.75rem;
   align-items: flex-start;
   padding: 0.6rem 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border);
   overflow: hidden;
 }
+.cart-order-item:last-child { border-bottom: none; }
 
-.cart-order-item:last-child {
-  border-bottom: none;
-}
-
-.cart-order-img {
-  width: 44px;
-  height: 60px;
-  object-fit: cover;
-  border-radius: 4px;
-  flex-shrink: 0;
-}
-
-.cart-order-meta {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-}
-
+.cart-order-img { width: 44px; height: 60px; object-fit: cover; border-radius: var(--radius-sm); flex-shrink: 0; }
+.cart-order-meta { flex: 1; min-width: 0; overflow: hidden; }
 .cart-order-title {
   font-weight: 700;
   font-size: 0.875rem;
   line-height: 1.3;
+  color: var(--text);
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   word-break: break-word;
 }
+.cart-order-author { font-size: 0.775rem; color: var(--text-muted); margin-top: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cart-order-price  { font-size: 0.85rem; color: var(--primary); font-weight: 600; margin-top: 0.2rem; }
 
-.cart-order-author {
-  font-size: 0.775rem;
-  color: #888;
-  margin-top: 0.15rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* =============================================
+   History Page
+   ============================================= */
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.history-header h1 { font-size: 1.8rem; font-weight: 700; color: var(--text); }
+.history-list { display: flex; flex-direction: column; gap: 1rem; }
+
+/* ---- History Card ---- */
+.history-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--shadow-sm);
+  display: grid;
+  grid-template-columns: 70px 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  transition: var(--transition);
+}
+.history-card:hover { box-shadow: var(--shadow-md); border-color: var(--border-2); }
+
+@media (max-width: 600px) {
+  .history-card { grid-template-columns: 70px 1fr; }
+  .history-card-price { grid-column: 1 / -1; text-align: right; }
 }
 
-.cart-order-price {
-  font-size: 0.85rem;
-  color: #6c63ff;
-  font-weight: 600;
-  margin-top: 0.2rem;
-}
+.history-card img { width: 70px; height: 95px; object-fit: cover; border-radius: var(--radius-sm); }
 
-/* ---- History: Cart Group ---- */
+.history-book-title { font-weight: 700; font-size: 1rem; margin-bottom: 0.3rem; color: var(--text); }
+.history-book-author { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.5rem; }
 
-/* Wrapper grup — gap antar item sama seperti history-list */
-.history-cart-group {
+.history-meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.2rem;
 }
 
-/* Header ringkas yang menggantung di atas item-item */
+.history-payment-id { font-family: monospace; color: var(--primary); font-weight: 700; }
+
+.history-payment-method {
+  display: inline-block;
+  background-color: var(--info-bg);
+  color: var(--primary);
+  border: 1px solid var(--info-border);
+  border-radius: var(--radius-full);
+  padding: 0.15rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+.history-card-price { text-align: right; }
+.history-price-value { font-size: 1.1rem; font-weight: 700; color: var(--primary); }
+.history-date { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.3rem; }
+
+.history-empty { text-align: center; padding: 4rem 2rem; color: var(--text-muted); }
+.history-empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+
+/* ---- History Cart Group ---- */
+.history-cart-group { display: flex; flex-direction: column; gap: 0.5rem; }
+
 .history-cart-group-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 0.5rem;
-  padding: 0.6rem 1rem;
-  background: #f5f3ff;
-  border: 1px solid #ddd6fe;
-  border-radius: 10px;
+  padding: 0.65rem 1rem;
+  background-color: var(--info-bg);
+  border: 1px solid var(--info-border);
+  border-radius: var(--radius-md);
 }
-
-.history-cart-group-left {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-}
+.history-cart-group-left { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
 
 .history-cart-badge {
-  background: #6c63ff;
-  color: #fff;
+  background-color: var(--primary);
+  color: var(--text-inverse);
   font-size: 0.72rem;
   font-weight: 700;
   padding: 0.18rem 0.6rem;
-  border-radius: 20px;
+  border-radius: var(--radius-full);
   white-space: nowrap;
 }
 
-.history-cart-group-id {
-  font-size: 0.78rem;
-  color: #4338ca;
-  font-family: monospace;
-  font-weight: 600;
-}
+.history-cart-group-id { font-size: 0.78rem; color: var(--primary); font-family: monospace; font-weight: 600; }
 
-.history-cart-group-right {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
+.history-cart-group-right { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.history-cart-group-meta  { font-size: 0.78rem; color: var(--text-muted); }
+.history-cart-group-total { font-size: 0.85rem; font-weight: 700; color: var(--primary); }
+.history-cart-group-date  { font-size: 0.75rem; color: var(--text-muted); }
 
-.history-cart-group-meta {
-  font-size: 0.78rem;
-  color: #6b7280;
-}
-
-.history-cart-group-total {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #4338ca;
-}
-
-.history-cart-group-date {
-  font-size: 0.75rem;
-  color: #9ca3af;
-}
-
-/* Wrapper item — tanpa gap tambahan, sudah diatur oleh .history-cart-group gap */
-.history-cart-items {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-/* Setiap item cart tampil seperti history-card biasa,
-   hanya diberi border kiri ungu sebagai penanda grup */
-.history-cart-item-card {
-  border-left: 3px solid #a5b4fc;
-}
+.history-cart-items { display: flex; flex-direction: column; gap: 0.5rem; }
+.history-cart-item-card { border-left: 3px solid var(--primary); }
 
 @media (max-width: 600px) {
-  .history-cart-group-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.4rem;
-  }
-
-  .history-cart-group-right {
-    gap: 0.4rem;
-  }
+  .history-cart-group-header { flex-direction: column; align-items: flex-start; gap: 0.4rem; }
+  .history-cart-group-right  { gap: 0.4rem; }
 }
 
-/* =============================================
-   Dark Mode Overrides — Checkout & History
-   ============================================= */
-[data-theme="dark"] .checkout-main,
-[data-theme="dark"] .cart-main {
-  background-color: var(--background-color);
-}
-
-[data-theme="dark"] .form-card {
-  background-color: var(--card-background);
-  box-shadow: var(--shadow-sm);
-}
-
-[data-theme="dark"] .form-section-title {
-  color: var(--text-color);
-  border-bottom-color: var(--primary-color);
-}
-
-[data-theme="dark"] .form-group label {
-  color: var(--text-muted);
-}
-
-[data-theme="dark"] .form-group input,
-[data-theme="dark"] .form-group textarea {
-  background-color: var(--background-color);
-  border-color: var(--border-color);
-  color: var(--text-color);
-}
-
-[data-theme="dark"] .form-group input:focus,
-[data-theme="dark"] .form-group textarea:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
-}
-
-[data-theme="dark"] .payment-option {
-  border-color: var(--border-color);
-}
-
-[data-theme="dark"] .payment-option:hover,
-[data-theme="dark"] .payment-option:has(input:checked) {
-  border-color: var(--primary-color);
-  background-color: rgba(96, 165, 250, 0.08);
-}
-
-[data-theme="dark"] .payment-name {
-  color: var(--text-color);
-}
-
-[data-theme="dark"] .payment-desc {
-  color: var(--text-muted);
-}
-
-[data-theme="dark"] .order-id-label {
-  color: var(--text-muted);
-}
-
-[data-theme="dark"] .order-total {
-  border-top-color: var(--border-color);
-  color: var(--text-color);
-}
-
-[data-theme="dark"] .order-book-info {
-  border-bottom-color: var(--border-color);
-}
-
-[data-theme="dark"] .checkout-alert.alert-danger {
-  background-color: var(--danger-bg);
-  color: var(--danger-color);
-  border-color: #991b1b;
-}
-
-[data-theme="dark"] .checkout-alert.alert-success {
-  background-color: var(--success-bg);
-  color: var(--success-color);
-}
-
-[data-theme="dark"] .modal-box,
-[data-theme="dark"] .cart-modal-box {
-  background-color: var(--card-background);
-}
-
-[data-theme="dark"] .modal-title {
-  color: var(--success-color);
-}
-
-[data-theme="dark"] .modal-desc {
-  color: var(--text-muted);
-}
-
-[data-theme="dark"] .modal-detail {
-  background-color: var(--background-color);
-}
-
-[data-theme="dark"] .modal-detail-row {
-  border-bottom-color: var(--border-color);
-  color: var(--text-color);
-}
-
-[data-theme="dark"] .modal-detail-row span {
-  color: var(--text-muted);
-}
-
-[data-theme="dark"] .checkout-title {
-  color: var(--text-color);
-}
-
-/* History */
-[data-theme="dark"] .history-card {
-  background-color: var(--card-background);
-  box-shadow: var(--shadow-sm);
-}
-
-[data-theme="dark"] .history-card-info .history-book-title {
-  color: var(--text-color);
-}
-
-[data-theme="dark"] .history-card-info .history-book-author {
-  color: var(--text-muted);
-}
-
-[data-theme="dark"] .history-card-info .history-meta {
-  color: var(--text-muted);
-}
-
-[data-theme="dark"] .history-card-info .history-payment-method {
-  background-color: #1e3a5f;
-  color: var(--primary-color);
-}
-
-[data-theme="dark"] .history-empty {
-  color: var(--text-muted);
-}
-
-[data-theme="dark"] .history-header h1 {
-  color: var(--text-color);
-}
-
-[data-theme="dark"] .history-cart-group-header {
-  background: linear-gradient(135deg, #1e1b4b, #1e3a5f);
-  border-color: #4338ca;
-}
-
-[data-theme="dark"] .history-cart-badge {
-  background-color: #4338ca;
-}
-
-[data-theme="dark"] .history-cart-group-id {
-  color: #a5b4fc;
-}
-
-[data-theme="dark"] .history-cart-group-meta {
-  color: #94a3b8;
-}
-
-[data-theme="dark"] .history-cart-group-total {
-  color: #a5b4fc;
-}
-
-[data-theme="dark"] .history-cart-group-date {
-  color: #64748b;
-}
-
-[data-theme="dark"] .history-cart-item-card {
-  border-left-color: #4338ca;
-}
-
-/* Cart checkout order list */
-[data-theme="dark"] .cart-order-item {
-  border-bottom-color: var(--border-color);
-}
-
-[data-theme="dark"] .cart-order-title {
-  color: var(--text-color);
-}
-
-[data-theme="dark"] .cart-order-author {
-  color: var(--text-muted);
-}
-
-/* =============================================
-   Info Detail Pembayaran di Riwayat
-   ============================================= */
-
+/* ---- Payment Detail in History ---- */
 .history-payment-detail {
   display: flex;
   flex-wrap: wrap;
@@ -981,75 +424,22 @@
   gap: 0.3rem 0.5rem;
   margin-top: 0.45rem;
   padding: 0.4rem 0.65rem;
-  background: #f3f4f6;
-  border-radius: 6px;
+  background-color: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   font-size: 0.78rem;
-  color: #374151;
+  color: var(--text-muted);
 }
+.history-detail-label { font-weight: 600; color: var(--text-muted); }
+.history-detail-value { font-family: monospace; color: var(--text); font-weight: 600; letter-spacing: 0.03em; }
+.history-detail-sep   { color: var(--border-2); font-weight: 700; }
 
-.history-detail-label {
-  font-weight: 600;
-  color: #6b7280;
+.history-cart-payment-detail { padding: 0 1rem 0.75rem; }
+
+/* ---- Danger Button ---- */
+.btn-danger {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: transparent;
 }
-
-.history-detail-value {
-  font-family: monospace;
-  color: #1e293b;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-}
-
-.history-detail-sep {
-  color: #d1d5db;
-  font-weight: 700;
-}
-
-/* Wrapper detail di cart group — tampil di bawah header */
-.history-cart-payment-detail {
-  padding: 0 1rem 0.75rem;
-}
-
-.history-cart-payment-detail .history-payment-detail {
-  border-radius: 6px;
-}
-
-/* Dark mode */
-[data-theme="dark"] .history-payment-detail {
-  background: rgba(255, 255, 255, 0.06);
-  color: #cbd5e1;
-}
-
-[data-theme="dark"] .history-detail-label {
-  color: #94a3b8;
-}
-
-[data-theme="dark"] .history-detail-value {
-  color: #e2e8f0;
-}
-
-[data-theme="dark"] .history-detail-sep {
-  color: #475569;
-}
-
-/* =============================================
-   Spinner di dalam tombol (btn-pay)
-   ============================================= */
-
-.btn-pay {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.btn-pay .spinner {
-  flex-shrink: 0;
-}
-
-/* Spinner di dalam btn-checkout-cart (cart page) */
-.btn-checkout-cart {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
+.btn-danger:hover { background-color: var(--danger); color: var(--text-inverse); border-color: var(--danger); }

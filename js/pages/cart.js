@@ -44,7 +44,7 @@ function initNavbarAuth() {
   const user = getUser();
   const displayName = user?.fullName || user?.username || 'Akun Saya';
   authNavContainer.innerHTML = `
-    <span style="font-size: 0.9rem; font-weight: 600; color: #4b5563;">Halo, ${displayName}</span>
+    <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">Halo, ${displayName}</span>
     <button class="btn btn-outline" id="btnLogout" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Keluar</button>
   `;
   document.getElementById('btnLogout')?.addEventListener('click', () => {
@@ -180,7 +180,7 @@ function renderCartItem(item) {
         <div class="cart-item-category">${item.category || 'Umum'}</div>
         <div class="cart-item-title" title="${item.title}">${item.title}</div>
         <div class="cart-item-author">${authors}</div>
-        <div class="cart-item-price-unit" style="font-weight:700; color:#10b981; margin-top:0.3rem;">${formatRupiah(item.price)}</div>
+        <div class="cart-item-price-unit" style="font-weight:700; color:var(--success); margin-top:0.3rem;">${formatRupiah(item.price)}</div>
       </div>
       <div class="cart-item-controls">
         <button class="btn-remove-cart" data-id="${item.id}">Hapus</button>

@@ -116,7 +116,7 @@ function renderOrderSummary() {
           `;
         }).join("")}
       </div>
-      <div style="margin-top:0.6rem; font-size:0.78rem; color:#6c63ff; font-weight:600;">
+      <div style="margin-top:0.6rem; font-size:0.78rem; color:var(--primary); font-weight:600;">
         📱 Buku Digital — Akses langsung setelah pembayaran
       </div>
     `;
@@ -130,10 +130,10 @@ function renderOrderSummary() {
       <div class="order-book-meta">
         <div class="book-order-title">${bookData.title}</div>
         <div class="book-order-author">${bookData.author}</div>
-        <div style="margin-top:0.5rem;font-size:0.85rem;color:#888;">
+        <div style="margin-top:0.5rem;font-size:0.85rem;color:var(--text-muted);">
           Harga: ${formatRupiah(bookData.price)}
         </div>
-        <div style="margin-top:0.3rem;font-size:0.78rem;color:#6c63ff;font-weight:600;">
+        <div style="margin-top:0.3rem;font-size:0.78rem;color:var(--primary);font-weight:600;">
           📱 Buku Digital — Akses langsung setelah pembayaran
         </div>
       </div>
@@ -434,7 +434,7 @@ function updateNavbar() {
     const user = getUser();
     const displayName = user?.fullName || user?.username || "Akun Saya";
     authNavContainer.innerHTML = `
-      <span style="font-size: 0.9rem; font-weight: 600; color: #4b5563;">Halo, ${displayName}</span>
+      <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">Halo, ${displayName}</span>
       <button class="btn btn-outline" id="btnLogout" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Keluar</button>
     `;
     document.getElementById("btnLogout")?.addEventListener("click", () => {
