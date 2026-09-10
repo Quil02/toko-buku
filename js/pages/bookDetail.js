@@ -1,14 +1,12 @@
 import { fetchBookById } from '../api/bookApi.js';
 import { addToWishlist, isInWishlist, removeFromWishlist } from '../api/wishlistApi.js';
+import { addToCart, isInCart } from '../api/cartApi.js';
 import { getUser, isAuthenticated, isGuest, clearAuth } from '../utils/authStorage.js';
 
-const breadcrumbTitle = document.getElementById('breadcrumbTitle');
+const breadcrumbTitle  = document.getElementById('breadcrumbTitle');
 const bookDetailWrapper = document.getElementById('bookDetailWrapper');
-const authNavContainer = document.getElementById('authNavContainer');
+const authNavContainer  = document.getElementById('authNavContainer');
 
-/**
- * Format angka ke mata uang Rupiah
- */
 function formatRupiah(amount) {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
@@ -17,9 +15,6 @@ function formatRupiah(amount) {
   }).format(amount);
 }
 
-/**
- * Buat URL checkout dari data buku
- */
 function buildCheckoutUrl(book) {
   const params = new URLSearchParams({
     id: book.id,
@@ -31,21 +26,21 @@ function buildCheckoutUrl(book) {
   return `checkout.html?${params.toString()}`;
 }
 
-/**
- * Inisialisasi status navbar
- */
 function initNavbarAuth() {
-  // Nav links
   const navEl = document.querySelector('.navbar-nav');
   if (navEl) {
     if (isAuthenticated()) {
       navEl.innerHTML = `
         <a href="index.html" class="nav-link">Katalog</a>
+        <a href="cart.html" class="nav-link">Keranjang</a>
         <a href="wishlist.html" class="nav-link">Wishlist</a>
         <a href="history.html" class="nav-link">Riwayat Pembelian</a>
       `;
     } else {
-      navEl.innerHTML = `<a href="index.html" class="nav-link">Katalog</a>`;
+      navEl.innerHTML = `
+        <a href="index.html" class="nav-link">Katalog</a>
+        <a href="cart.html" class="nav-link">Keranjang</a>
+      `;
     }
   }
 
@@ -70,9 +65,6 @@ function initNavbarAuth() {
   }
 }
 
-/**
- * Muat detail buku dari API
- */
 async function loadBookDetail() {
   const urlParams = new URLSearchParams(window.location.search);
   const bookId = urlParams.get('id');
@@ -96,7 +88,11 @@ async function loadBookDetail() {
     document.title = `${book.title} - TokoBuku`;
 
     const alreadyInWishlist = isInWishlist(book.id);
-    const checkoutUrl = buildCheckoutUrl(book);
+    const alreadyInCart     = isInCart(book.id);
+    const checkoutUrl       = buildCheckoutUrl(book);
+
+    // Tombol "Tambah ke Keranjang" tersedia untuk semua (guest & user)
+    const cartBtnLabel = alreadyInCart ? '✅ Sudah di Keranjang' : '🛒 Tambah ke Keranjang';
 
     bookDetailWrapper.innerHTML = `
       <section class="book-detail-main">
@@ -117,7 +113,10 @@ async function loadBookDetail() {
 
           <div class="book-detail-actions">
             ${isAuthenticated()
-              ? `<a href="${checkoutUrl}" class="btn btn-primary" id="btnBuyNow">🛒 Beli Sekarang</a>
+              ? `<a href="${checkoutUrl}" class="btn btn-primary" id="btnBuyNow">⚡ Beli Langsung</a>
+                 <button class="btn btn-outline" id="btnAddToCart" style="border-color:#2563eb; color:#2563eb;">
+                   ${cartBtnLabel}
+                 </button>
                  <button class="btn btn-outline" id="btnWishlist">
                    ${alreadyInWishlist ? '❤️ Sudah di Wishlist' : '🤍 Tambah ke Wishlist'}
                  </button>`
@@ -149,7 +148,20 @@ async function loadBookDetail() {
       </section>
     `;
 
-    // Tombol Wishlist — hanya aktif untuk user yang login
+    // Tombol Tambah ke Keranjang (guest & user bisa)
+    const btnAddToCart = document.getElementById('btnAddToCart');
+    btnAddToCart?.addEventListener('click', () => {
+      if (isInCart(book.id)) {
+        window.location.href = 'cart.html';
+        return;
+      }
+      addToCart(book);
+      btnAddToCart.textContent = '✅ Sudah di Keranjang';
+      btnAddToCart.style.borderColor = '#10b981';
+      btnAddToCart.style.color = '#10b981';
+    });
+
+    // Tombol Wishlist — hanya untuk user login
     if (isAuthenticated()) {
       const btnWishlist = document.getElementById('btnWishlist');
       btnWishlist?.addEventListener('click', () => {
@@ -175,6 +187,5 @@ async function loadBookDetail() {
   }
 }
 
-// Initial Setup
 initNavbarAuth();
 loadBookDetail();

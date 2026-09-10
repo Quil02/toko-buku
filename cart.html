@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Keranjang Belanja - TokoBuku</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/cart.css" />
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <div class="container">
+      <a href="index.html" class="navbar-brand">
+        📚 <span>TokoBuku</span>
+      </a>
+
+      <nav class="navbar-nav" id="mainNavLinks">
+        <a href="index.html" class="nav-link">Katalog</a>
+      </nav>
+
+      <div class="navbar-user" id="authNavContainer">
+        <a href="login.html" class="btn btn-outline">Masuk</a>
+        <a href="register.html" class="btn btn-primary">Daftar</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Cart Content -->
+  <main class="cart-main">
+    <div class="container">
+
+      <!-- Cart Header -->
+      <div class="cart-header">
+        <div class="cart-title-wrap">
+          <h1>🛒 Keranjang Belanja <span id="cartCountBadge" class="cart-count-badge">0 item</span></h1>
+          <p class="cart-subtitle">Buku yang siap kamu beli sekarang.</p>
+        </div>
+        <a href="index.html" class="btn btn-outline">← Lanjut Belanja</a>
+      </div>
+
+      <!-- Guest Banner -->
+      <div id="guestBanner" class="cart-guest-banner" style="display: none;">
+        <div class="cart-guest-banner-text">
+          <div class="cart-guest-banner-icon">👋</div>
+          <div>
+            <h3>Kamu berbelanja sebagai Tamu</h3>
+            <p>Login untuk menyimpan keranjang secara permanen & mendapatkan riwayat pembelian.</p>
+          </div>
+        </div>
+        <div class="cart-guest-banner-actions">
+          <a href="login.html?redirect=cart.html" class="btn btn-primary" style="font-size: 0.875rem;">Masuk / Daftar</a>
+        </div>
+      </div>
+
+      <!-- Cart Body -->
+      <div id="cartBody">
+        <!-- Diisi secara dinamis -->
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-bottom">
+      <p>&copy; 2025 TokoBuku Online. Data didukung langsung oleh Open Library API.</p>
+    </div>
+  </footer>
+
+  <script type="module" src="js/pages/cart.js"></script>
+</body>
+</html>

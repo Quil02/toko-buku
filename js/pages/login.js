@@ -1,5 +1,5 @@
 import { loginRequest } from '../api/authApi.js';
-import { setAuth, isAuthenticated, setGuest, isGuest } from '../utils/authStorage.js';
+import { setAuth, isAuthenticated, setGuest } from '../utils/authStorage.js';
 
 const params = new URLSearchParams(window.location.search);
 const redirectUrl = params.get('redirect') || 'index.html';
@@ -8,11 +8,11 @@ if (isAuthenticated()) {
   window.location.href = redirectUrl;
 }
 
-const loginForm = document.getElementById('loginForm');
+const loginForm           = document.getElementById('loginForm');
 const emailOrUsernameInput = document.getElementById('emailOrUsername');
-const passwordInput = document.getElementById('password');
-const submitBtn = document.getElementById('submitBtn');
-const authAlert = document.getElementById('authAlert');
+const passwordInput       = document.getElementById('password');
+const submitBtn           = document.getElementById('submitBtn');
+const authAlert           = document.getElementById('authAlert');
 
 function showAlert(message, type = 'danger') {
   authAlert.className = `alert alert-${type}`;
@@ -54,6 +54,7 @@ if (loginForm) {
 
       if (res && res.success) {
         setAuth(res.token, res.user);
+
         showAlert('Login berhasil! Mengalihkan...', 'success');
         setTimeout(() => {
           window.location.href = redirectUrl;
