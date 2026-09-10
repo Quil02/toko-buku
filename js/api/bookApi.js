@@ -36,6 +36,35 @@ function getRandomPage(min = 1, max = 10) {
  * @param {string} key 
  * @returns {string}
  */
+/**
+ * Ekstrak ISBN dari data doc/item atau buat format ISBN-13 deterministik dari ID
+ * @param {Array|string} isbnSource
+ * @param {string} fallbackId
+ * @returns {string}
+ */
+export function extractIsbn(isbnSource, fallbackId = '') {
+  if (Array.isArray(isbnSource) && isbnSource.length > 0) {
+    const raw = String(isbnSource[0]).trim();
+    if (raw.length === 13) {
+      return `${raw.slice(0, 3)}-${raw.slice(3, 4)}-${raw.slice(4, 8)}-${raw.slice(8, 12)}-${raw.slice(12)}`;
+    } else if (raw.length === 10) {
+      return `${raw.slice(0, 1)}-${raw.slice(1, 5)}-${raw.slice(5, 9)}-${raw.slice(9)}`;
+    }
+    return raw;
+  }
+  if (typeof isbnSource === 'string' && isbnSource.trim()) {
+    return isbnSource.trim();
+  }
+  let hash = 0;
+  for (let i = 0; i < fallbackId.length; i++) {
+    hash = (hash * 31 + fallbackId.charCodeAt(i)) >>> 0;
+  }
+  const partA = String(1000 + (hash % 9000));
+  const partB = String(10 + (Math.floor(hash / 9000) % 90));
+  const checkDigit = (hash % 10);
+  return `978-602-${partA}-${partB}-${checkDigit}`;
+}
+
 export function extractWorkId(key = '') {
   if (!key) return '';
   return key.replace(/^\/works\//, '').replace(/^\//, '');
@@ -84,6 +113,7 @@ export function normalizeBookData(doc) {
   const ratingsCount = doc.ratings_count || (Math.floor((id.charCodeAt(0) || 5) % 15) + 3);
 
   const price = generatePriceFromId(id);
+  const isbn = extractIsbn(doc.isbn, id);
 
   return {
     id,
@@ -98,6 +128,7 @@ export function normalizeBookData(doc) {
     categories,
     category: categories[0] || 'Umum',
     pageCount: doc.number_of_pages_median || 0,
+    isbn,
     language: Array.isArray(doc.language) && doc.language.length > 0 ? doc.language[0].toUpperCase() : 'ID',
     rating,
     ratingsCount,
@@ -170,6 +201,7 @@ export function normalizeWorkDetail(item, workId, extraDoc = null) {
     language: 'ID',
     rating,
     ratingsCount,
+    isbn: extractIsbn(extraDoc?.isbn || item.isbn || item.isbn_13 || item.isbn_10, id),
     price: generatePriceFromId(id),
     previewLink: `https://openlibrary.org/works/${id}`
   };
@@ -190,8 +222,8 @@ export async function fetchBooks({ query = 'programming', category = '', maxResu
   try {
     let searchParam = query.trim() || 'programming';
 
-    // Jika page tidak diberikan, gunakan halaman acak agar hasil berubah tiap refresh
-    const randomizedPage = page !== null ? page : getRandomPage(1, 10);
+    const isDefaultQuery = !query || query.trim() === 'programming';
+    const randomizedPage = page !== null ? page : (isDefaultQuery ? getRandomPage(1, 10) : 1);
 
     let url = `${OPEN_LIBRARY_BASE_URL}/search.json?q=${encodeURIComponent(searchParam)}&limit=${maxResults}&page=${randomizedPage}`;
 

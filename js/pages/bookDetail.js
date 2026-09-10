@@ -29,7 +29,7 @@ function buildCheckoutUrl(book) {
 function initNavbarAuth() {
   const navEl = document.querySelector('.navbar-nav');
   if (navEl) {
-    if (isAuthenticated()) {
+    if (isAuthenticated() && !isGuest()) {
       navEl.innerHTML = `
         <a href="index.html" class="nav-link">Katalog</a>
         <a href="cart.html" class="nav-link">Keranjang</a>
@@ -39,14 +39,13 @@ function initNavbarAuth() {
     } else {
       navEl.innerHTML = `
         <a href="index.html" class="nav-link">Katalog</a>
-        <a href="cart.html" class="nav-link">Keranjang</a>
       `;
     }
   }
 
   if (!authNavContainer) return;
 
-  if (isAuthenticated()) {
+  if (isAuthenticated() && !isGuest()) {
     const user = getUser();
     const displayName = user?.fullName || user?.email || 'Akun Saya';
     authNavContainer.innerHTML = `
@@ -111,6 +110,16 @@ async function loadBookDetail() {
 
   try {
     const book = await fetchBookById(bookId);
+    try {
+      const cached = JSON.parse(sessionStorage.getItem('tokobuku_cached_books') || '[]');
+      const idx = cached.findIndex(b => b.id === book.id);
+      if (idx >= 0) {
+        cached[idx] = { ...cached[idx], ...book };
+      } else {
+        cached.push(book);
+      }
+      sessionStorage.setItem('tokobuku_cached_books', JSON.stringify(cached));
+    } catch (e) {}
 
     breadcrumbTitle.textContent = book.title;
     document.title = `${book.title} - TokoBuku`;
@@ -120,6 +129,7 @@ async function loadBookDetail() {
     const checkoutUrl       = buildCheckoutUrl(book);
 
     const cartBtnLabel = alreadyInCart ? '✅ Sudah di Keranjang' : '🛒 Tambah ke Keranjang';
+    const isUserLoggedIn = isAuthenticated() && !isGuest();
 
     bookDetailWrapper.innerHTML = `
       <section class="book-detail-main" style="animation: fadeInUp 0.35s ease both;">
@@ -139,7 +149,7 @@ async function loadBookDetail() {
           </div>
 
           <div class="book-detail-actions">
-            ${isAuthenticated()
+            ${isUserLoggedIn
               ? `<a href="${checkoutUrl}" class="btn btn-primary btn-action-buy" id="btnBuyNow">⚡ Beli Langsung</a>
                  <button class="btn btn-outline btn-action-cart ${alreadyInCart ? 'in-cart' : ''}" id="btnAddToCart">
                    ${cartBtnLabel}
@@ -147,13 +157,9 @@ async function loadBookDetail() {
                  <button class="btn btn-outline btn-action-wishlist ${alreadyInWishlist ? 'in-wishlist' : ''}" id="btnWishlist">
                    ${alreadyInWishlist ? '❤️ Sudah di Wishlist' : '🤍 Tambah ke Wishlist'}
                  </button>`
-              : `<a href="login.html?redirect=${encodeURIComponent(checkoutUrl)}" class="btn btn-primary btn-action-buy" id="btnBuyNow">⚡ Beli Langsung</a>
-                 <button class="btn btn-outline btn-action-cart ${alreadyInCart ? 'in-cart' : ''}" id="btnAddToCart">
-                   ${cartBtnLabel}
-                 </button>
-                 <a href="login.html?redirect=${encodeURIComponent(window.location.href)}" class="btn btn-outline btn-action-wishlist" id="btnWishlist">
-                   🤍 Tambah ke Wishlist
-                 </a>`
+              : `<a href="login.html?redirect=${encodeURIComponent(checkoutUrl)}" class="btn btn-primary btn-action-buy" id="btnBuyNow" title="Diperlukan login terlebih dahulu untuk menggunakan tombol ini">⚡ Beli Langsung</a>
+                 <a href="login.html?redirect=${encodeURIComponent(window.location.href)}" class="btn btn-outline btn-action-cart" id="btnAddToCart" title="Diperlukan login terlebih dahulu untuk menggunakan tombol ini">🛒 Tambah ke Keranjang</a>
+                 <a href="login.html?redirect=${encodeURIComponent(window.location.href)}" class="btn btn-outline btn-action-wishlist" id="btnWishlist" title="Diperlukan login terlebih dahulu untuk menggunakan tombol ini">🤍 Tambah ke Wishlist</a>`
             }
           </div>
 
@@ -170,6 +176,10 @@ async function loadBookDetail() {
               <span class="metadata-label">Halaman</span>
               <span class="metadata-value">${book.pageCount ? book.pageCount + ' Hlm' : 'N/A'}</span>
             </div>
+            <div class="metadata-item">
+              <span class="metadata-label">ISBN</span>
+              <span class="metadata-value">${book.isbn || 'N/A'}</span>
+            </div>
           </div>
 
           <div class="book-synopsis">
@@ -180,18 +190,18 @@ async function loadBookDetail() {
       </section>
     `;
 
-    const btnAddToCart = document.getElementById('btnAddToCart');
-    btnAddToCart?.addEventListener('click', () => {
-      if (isInCart(book.id)) {
-        window.location.href = 'cart.html';
-        return;
-      }
-      addToCart(book);
-      btnAddToCart.textContent = '✅ Sudah di Keranjang';
-      btnAddToCart.classList.add('in-cart');
-    });
+    if (isUserLoggedIn) {
+      const btnAddToCart = document.getElementById('btnAddToCart');
+      btnAddToCart?.addEventListener('click', () => {
+        if (isInCart(book.id)) {
+          window.location.href = 'cart.html';
+          return;
+        }
+        addToCart(book);
+        btnAddToCart.textContent = '✅ Sudah di Keranjang';
+        btnAddToCart.classList.add('in-cart');
+      });
 
-    if (isAuthenticated()) {
       const btnWishlist = document.getElementById('btnWishlist');
       btnWishlist?.addEventListener('click', () => {
         if (isInWishlist(book.id)) {

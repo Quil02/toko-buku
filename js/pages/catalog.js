@@ -2,7 +2,16 @@ import { fetchBooks } from '../api/bookApi.js';
 import { getUser, isAuthenticated, isGuest, clearAuth } from '../utils/authStorage.js';
 
 let allBooks = [];
+let masterBooks = [];
 let debounceTimer = null;
+
+try {
+  const cached = sessionStorage.getItem('tokobuku_cached_books');
+  if (cached) {
+    masterBooks = JSON.parse(cached);
+    allBooks = [...masterBooks];
+  }
+} catch (e) {}
 
 // DOM Elements
 const booksGrid = document.getElementById('booksGrid');
@@ -26,24 +35,23 @@ function formatRupiah(amount) {
 function initNavbarAuth() {
   const navEl = document.querySelector('.navbar-nav');
   if (navEl) {
-    if (isAuthenticated()) {
+    if (isAuthenticated() && !isGuest()) {
       navEl.innerHTML = `
-        <a href="index.html" class="nav-link">Katalog</a>
+        <a href="index.html" class="nav-link active">Katalog</a>
         <a href="cart.html" class="nav-link">Keranjang</a>
         <a href="wishlist.html" class="nav-link">Wishlist</a>
         <a href="history.html" class="nav-link">Riwayat Pembelian</a>
       `;
     } else {
       navEl.innerHTML = `
-        <a href="index.html" class="nav-link">Katalog</a>
-        <a href="cart.html" class="nav-link">Keranjang</a>
+        <a href="index.html" class="nav-link active">Katalog</a>
       `;
     }
   }
 
   if (!authNavContainer) return;
 
-  if (isAuthenticated()) {
+  if (isAuthenticated() && !isGuest()) {
     const user = getUser();
     const displayName = user?.fullName || user?.username || 'Akun Saya';
     authNavContainer.innerHTML = `
@@ -117,8 +125,33 @@ function renderBooks(books) {
   `).join('');
 }
 
+/**
+ * Memeriksa apakah buku cocok dengan kata kunci pencarian.
+ * - Judul buku: case sensitive
+ * - Penulis: case sensitive
+ */
+function matchesSearch(book, searchTerm) {
+  if (!searchTerm) return true;
+
+  // 1. Judul buku — Case Sensitive
+  const matchTitle = (typeof book.title === "string" && book.title.includes(searchTerm)) ||
+                     (typeof book.subtitle === "string" && book.subtitle.includes(searchTerm));
+
+  // 2. Penulis — Case Sensitive
+  const matchAuthor = Array.isArray(book.authors)
+    ? book.authors.some(author => typeof author === "string" && author.includes(searchTerm))
+    : (typeof book.authors === "string" && book.authors.includes(searchTerm));
+
+  return matchTitle || matchAuthor;
+}
+
 function applyClientFilters() {
   let filtered = [...allBooks];
+
+  const searchTerm = searchInput.value.trim();
+  if (searchTerm) {
+    filtered = filtered.filter(b => matchesSearch(b, searchTerm));
+  }
 
   const minPrice = parseFloat(minPriceInput.value);
   if (!isNaN(minPrice) && minPrice >= 0) {
@@ -139,32 +172,62 @@ function applyClientFilters() {
     filtered.sort((a, b) => a.title.localeCompare(b.title));
   }
 
+  if (filtered.length === 0 && searchTerm) {
+    renderEmpty(`Tidak ada buku yang sesuai dengan pencarian "${searchTerm}". Catatan: pencarian judul buku dan nama penulis bersifat case-sensitive.`);
+    return;
+  }
+
   renderBooks(filtered);
 }
 
 async function loadBooksFromApi() {
-  const query = searchInput.value.trim() || 'programming';
+  const searchTerm = searchInput.value.trim();
+  const query = searchTerm || 'programming';
   const checkedCategory = document.querySelector('input[name="category"]:checked')?.value || '';
 
-  renderLoading();
+  if (allBooks.length === 0) {
+    renderLoading();
+  }
 
   try {
     const books = await fetchBooks({ query, category: checkedCategory, maxResults: 24 });
-    allBooks = books;
+    if (books && books.length > 0) {
+      if (!searchTerm && !checkedCategory) {
+        masterBooks = books;
+      } else {
+        const newIds = new Set(books.map(b => b.id));
+        masterBooks = [...books, ...masterBooks.filter(b => !newIds.has(b.id))];
+      }
+      allBooks = books;
+      try { sessionStorage.setItem('tokobuku_cached_books', JSON.stringify(masterBooks)); } catch (e) {}
+    } else {
+      // Jika API Open Library tidak menemukan buku,
+      // gunakan masterBooks agar pencarian tetap mencocokkan buku yang ada
+      allBooks = [...masterBooks];
+    }
     applyClientFilters();
   } catch (error) {
-    booksGrid.innerHTML = `
-      <div class="catalog-state">
-        <div class="catalog-state-icon">⚠️</div>
-        <h3 class="catalog-state-title">Gagal Mengambil Data</h3>
-        <p class="catalog-state-desc">Terjadi kendala saat terhubung ke Open Library API. Silakan coba lagi.</p>
-      </div>
-    `;
+    if (allBooks.length > 0 || masterBooks.length > 0) {
+      if (allBooks.length === 0) allBooks = [...masterBooks];
+      applyClientFilters();
+    } else {
+      booksGrid.innerHTML = `
+        <div class="catalog-state">
+          <div class="catalog-state-icon">⚠️</div>
+          <h3 class="catalog-state-title">Gagal Mengambil Data</h3>
+          <p class="catalog-state-desc">Terjadi kendala saat terhubung ke Open Library API. Silakan coba lagi.</p>
+        </div>
+      `;
+    }
   }
 }
 
 // Event Listeners
 searchInput.addEventListener('input', () => {
+  if (allBooks.length === 0 && masterBooks.length > 0) {
+    allBooks = [...masterBooks];
+  }
+  applyClientFilters();
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
     loadBooksFromApi();
@@ -184,6 +247,7 @@ applyPriceFilterBtn?.addEventListener('click', () => {
 });
 
 resetFilterBtn?.addEventListener('click', () => {
+  searchInput.value = '';
   minPriceInput.value = '';
   maxPriceInput.value = '';
   sortSelect.value = 'default';
