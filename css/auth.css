@@ -161,3 +161,71 @@
   border-color: var(--text-muted);
   color: var(--text-color);
 }
+
+/* =============================================
+   Dark Mode Overrides — Auth (Login/Register)
+   ============================================= */
+[data-theme="dark"] .auth-card {
+  background-color: var(--card-background);
+  border-color: var(--border-color);
+  box-shadow: var(--shadow-md);
+}
+
+[data-theme="dark"] .auth-title {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .auth-subtitle,
+[data-theme="dark"] .auth-footer {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .form-label {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .form-control {
+  background-color: var(--background-color);
+  border-color: var(--border-color);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .form-control:focus {
+  border-color: var(--primary-color);
+  background-color: var(--card-background);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+
+[data-theme="dark"] .form-control::placeholder {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .auth-divider {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .auth-divider::before,
+[data-theme="dark"] .auth-divider::after {
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .btn-guest {
+  background-color: transparent;
+  border-color: var(--border-color);
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .btn-guest:hover {
+  background-color: var(--border-color);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .alert-danger {
+  background-color: var(--danger-bg);
+  color: var(--danger-color);
+}
+
+[data-theme="dark"] .alert-success {
+  background-color: var(--success-bg);
+  color: var(--success-color);
+}

@@ -16,12 +16,12 @@
       </a>
 
       <nav class="navbar-nav">
-        <a href="index.html" class="nav-link">Katalog</a>
+        <a href="index.html" class="nav-link active">Katalog</a>
         <a href="cart.html" class="nav-link">Keranjang</a>
       </nav>
 
-      <div class="navbar-user" id="authNavContainer">
-        <!-- Dynamic via auth status -->
+      <button id="darkModeToggle" class="btn-dark-toggle" title="Ganti ke Mode Gelap" aria-label="Ganti ke Mode Gelap">🌙</button>
+      <div class="navbar-user" id="authNavContainer">        <!-- Dynamic via auth status -->
         <a href="login.html" class="btn btn-outline" id="navLoginBtn">Masuk</a>
         <a href="register.html" class="btn btn-primary" id="navRegisterBtn">Daftar</a>
       </div>
@@ -115,5 +115,6 @@
   </footer>
 
   <script type="module" src="js/pages/catalog.js"></script>
+  <script type="module" src="js/utils/darkMode.js"></script>
 </body>
 </html>

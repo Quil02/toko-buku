@@ -351,3 +351,73 @@
     position: static;
   }
 }
+
+/* =============================================
+   Dark Mode Overrides — Catalog
+   ============================================= */
+[data-theme="dark"] .catalog-sidebar,
+[data-theme="dark"] .catalog-toolbar {
+  background-color: var(--card-background);
+  box-shadow: var(--shadow-sm);
+}
+
+[data-theme="dark"] .filter-section {
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .filter-title,
+[data-theme="dark"] .filter-option {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .price-input-group input,
+[data-theme="dark"] .search-input,
+[data-theme="dark"] .sort-select {
+  background-color: var(--background-color);
+  border-color: var(--border-color);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .search-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+
+[data-theme="dark"] .btn-filter-reset {
+  border-color: var(--border-color);
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .btn-filter-reset:hover {
+  background-color: var(--border-color);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .sort-label {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .book-card {
+  background-color: var(--card-background);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .book-card-cover-wrap {
+  background-color: #0f172a;
+}
+
+[data-theme="dark"] .book-card-title {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .book-card-author {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .catalog-state {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .catalog-state-desc {
+  color: var(--text-muted);
+}

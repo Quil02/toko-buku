@@ -289,3 +289,99 @@
     max-width: 220px;
   }
 }
+
+/* =============================================
+   Dark Mode Overrides — Book Detail
+   ============================================= */
+[data-theme="dark"] .book-detail-main,
+[data-theme="dark"] .reviews-section {
+  background-color: var(--card-background);
+  box-shadow: var(--shadow-sm);
+}
+
+[data-theme="dark"] .book-detail-cover-wrap {
+  background-color: #0f172a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .book-detail-category-badge {
+  background-color: #1e3a5f;
+  color: var(--primary-color);
+}
+
+[data-theme="dark"] .book-detail-title {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .book-detail-authors {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .book-detail-price {
+  color: var(--primary-color);
+}
+
+[data-theme="dark"] .book-detail-rating-summary {
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .book-metadata-grid {
+  background-color: #0f172a;
+}
+
+[data-theme="dark"] .metadata-label {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .metadata-value {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .book-synopsis-title {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .book-synopsis-text {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .breadcrumb {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .review-form-container {
+  background-color: #0f172a;
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .review-form-title {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .review-item {
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .review-item-user {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .review-item-comment {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .reviews-header {
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .star-rating-input .star {
+  color: #334155;
+}
+
+[data-theme="dark"] .catalog-state-title {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .catalog-state-desc {
+  color: var(--text-muted);
+}

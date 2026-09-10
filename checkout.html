@@ -20,8 +20,8 @@
           <a href="history.html" class="nav-link">Riwayat Pembelian</a>
         </nav>
 
-        <div class="navbar-user" id="authNavContainer">
-          <a href="login.html" class="btn btn-outline">Masuk</a>
+        <button id="darkModeToggle" class="btn-dark-toggle" title="Ganti ke Mode Gelap" aria-label="Ganti ke Mode Gelap">🌙</button>
+      <div class="navbar-user" id="authNavContainer">          <a href="login.html" class="btn btn-outline">Masuk</a>
           <a href="register.html" class="btn btn-primary">Daftar</a>
         </div>
       </div>
@@ -113,6 +113,57 @@
                 </label>
               </div>
             </div>
+
+            <!-- Detail Pembayaran (muncul sesuai metode dipilih) -->
+            <div class="form-card" id="paymentDetailCard" style="display:none;">
+              <div class="form-section-title" id="paymentDetailTitle">🔐 Detail Pembayaran</div>
+
+              <!-- Transfer Bank (BCA / Mandiri) -->
+              <div id="bankFields" style="display:none;">
+                <div class="payment-detail-info">
+                  <span class="payment-detail-badge bank">🏦 Transfer Bank</span>
+                  <p class="payment-detail-hint">Masukkan detail kartu debit / rekening yang akan digunakan untuk transfer.</p>
+                </div>
+                <div class="form-group">
+                  <label for="bankAccountNumber">Nomor Rekening</label>
+                  <input type="text" id="bankAccountNumber" placeholder="Contoh: 1234567890" maxlength="20" inputmode="numeric" />
+                </div>
+                <div class="payment-detail-row">
+                  <div class="form-group">
+                    <label for="bankCardExpiry">Tanggal Kadaluarsa</label>
+                    <input type="text" id="bankCardExpiry" placeholder="MM/YY" maxlength="5" />
+                  </div>
+                  <div class="form-group">
+                    <label for="bankCardCvc">CVC</label>
+                    <input type="text" id="bankCardCvc" placeholder="123" maxlength="3" inputmode="numeric" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="bankAccountName">Nama Pemilik Rekening</label>
+                  <input type="text" id="bankAccountName" placeholder="Sesuai nama di buku tabungan" />
+                </div>
+              </div>
+
+              <!-- E-Wallet (GoPay / OVO / DANA) -->
+              <div id="ewalletFields" style="display:none;">
+                <div class="payment-detail-info">
+                  <span class="payment-detail-badge ewallet">📱 E-Wallet</span>
+                  <p class="payment-detail-hint">Masukkan nomor telepon yang terdaftar di akun e-wallet kamu.</p>
+                </div>
+                <div class="form-group">
+                  <label for="ewalletPhone">Nomor Telepon</label>
+                  <div class="phone-input-wrap">
+                    <span class="phone-prefix">+62</span>
+                    <input type="text" id="ewalletPhone" placeholder="812 3456 7890" maxlength="13" inputmode="numeric" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="ewalletPin">PIN E-Wallet <span class="label-optional">(opsional)</span></label>
+                  <input type="password" id="ewalletPin" placeholder="••••••" maxlength="6" inputmode="numeric" />
+                </div>
+              </div>
+
+            </div>
           </div>
 
           <!-- Kolom Kanan: Ringkasan Pesanan -->
@@ -187,5 +238,6 @@
     </footer>
 
     <script type="module" src="js/pages/checkout.js"></script>
-  </body>
+    <script type="module" src="js/utils/darkMode.js"></script>
+</body>
 </html>

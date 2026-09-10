@@ -789,3 +789,183 @@
     gap: 0.4rem;
   }
 }
+
+/* =============================================
+   Dark Mode Overrides — Checkout & History
+   ============================================= */
+[data-theme="dark"] .checkout-main,
+[data-theme="dark"] .cart-main {
+  background-color: var(--background-color);
+}
+
+[data-theme="dark"] .form-card {
+  background-color: var(--card-background);
+  box-shadow: var(--shadow-sm);
+}
+
+[data-theme="dark"] .form-section-title {
+  color: var(--text-color);
+  border-bottom-color: var(--primary-color);
+}
+
+[data-theme="dark"] .form-group label {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .form-group input,
+[data-theme="dark"] .form-group textarea {
+  background-color: var(--background-color);
+  border-color: var(--border-color);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .form-group input:focus,
+[data-theme="dark"] .form-group textarea:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+
+[data-theme="dark"] .payment-option {
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .payment-option:hover,
+[data-theme="dark"] .payment-option:has(input:checked) {
+  border-color: var(--primary-color);
+  background-color: rgba(96, 165, 250, 0.08);
+}
+
+[data-theme="dark"] .payment-name {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .payment-desc {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .order-id-label {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .order-total {
+  border-top-color: var(--border-color);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .order-book-info {
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .checkout-alert.alert-danger {
+  background-color: var(--danger-bg);
+  color: var(--danger-color);
+  border-color: #991b1b;
+}
+
+[data-theme="dark"] .checkout-alert.alert-success {
+  background-color: var(--success-bg);
+  color: var(--success-color);
+}
+
+[data-theme="dark"] .modal-box,
+[data-theme="dark"] .cart-modal-box {
+  background-color: var(--card-background);
+}
+
+[data-theme="dark"] .modal-title {
+  color: var(--success-color);
+}
+
+[data-theme="dark"] .modal-desc {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .modal-detail {
+  background-color: var(--background-color);
+}
+
+[data-theme="dark"] .modal-detail-row {
+  border-bottom-color: var(--border-color);
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .modal-detail-row span {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .checkout-title {
+  color: var(--text-color);
+}
+
+/* History */
+[data-theme="dark"] .history-card {
+  background-color: var(--card-background);
+  box-shadow: var(--shadow-sm);
+}
+
+[data-theme="dark"] .history-card-info .history-book-title {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .history-card-info .history-book-author {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .history-card-info .history-meta {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .history-card-info .history-payment-method {
+  background-color: #1e3a5f;
+  color: var(--primary-color);
+}
+
+[data-theme="dark"] .history-empty {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .history-header h1 {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .history-cart-group-header {
+  background: linear-gradient(135deg, #1e1b4b, #1e3a5f);
+  border-color: #4338ca;
+}
+
+[data-theme="dark"] .history-cart-badge {
+  background-color: #4338ca;
+}
+
+[data-theme="dark"] .history-cart-group-id {
+  color: #a5b4fc;
+}
+
+[data-theme="dark"] .history-cart-group-meta {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .history-cart-group-total {
+  color: #a5b4fc;
+}
+
+[data-theme="dark"] .history-cart-group-date {
+  color: #64748b;
+}
+
+[data-theme="dark"] .history-cart-item-card {
+  border-left-color: #4338ca;
+}
+
+/* Cart checkout order list */
+[data-theme="dark"] .cart-order-item {
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .cart-order-title {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .cart-order-author {
+  color: var(--text-muted);
+}

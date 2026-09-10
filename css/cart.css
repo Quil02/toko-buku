@@ -582,3 +582,116 @@
   color: #6c63ff;
   margin-bottom: 1.25rem;
 }
+
+/* =============================================
+   Dark Mode Overrides — Cart
+   ============================================= */
+[data-theme="dark"] .cart-items-section {
+  background-color: var(--card-background);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .cart-items-header {
+  background-color: #0f172a;
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .cart-items-header h2 {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .cart-item {
+  border-bottom-color: #1e293b;
+}
+
+[data-theme="dark"] .cart-item:hover {
+  background-color: #1e293b;
+}
+
+[data-theme="dark"] .cart-item-title {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .cart-item-author,
+[data-theme="dark"] .cart-item-price-unit {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .cart-summary-card {
+  background-color: var(--card-background);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .cart-summary-title {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .cart-summary-row {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .cart-summary-row.total {
+  color: var(--text-color);
+  border-top-color: var(--border-color);
+}
+
+[data-theme="dark"] .cart-summary-note {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .cart-empty-state {
+  background-color: var(--card-background);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .cart-empty-title {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .cart-empty-desc {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .cart-guest-banner {
+  background: linear-gradient(135deg, #1e3a5f, #1e3a5f);
+  border-color: #1d4ed8;
+}
+
+[data-theme="dark"] .cart-guest-banner-text h3 {
+  color: #93c5fd;
+}
+
+[data-theme="dark"] .cart-guest-banner-text p {
+  color: #60a5fa;
+}
+
+[data-theme="dark"] .cart-count-badge {
+  background-color: #1e3a5f;
+  color: #93c5fd;
+}
+
+[data-theme="dark"] .cart-title-wrap h1,
+[data-theme="dark"] .cart-subtitle {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .cart-subtitle {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .btn-clear-cart {
+  border-color: #7f1d1d;
+  color: var(--danger-color);
+}
+
+[data-theme="dark"] .btn-clear-cart:hover {
+  background-color: #7f1d1d;
+}
+
+[data-theme="dark"] .btn-remove-cart {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .btn-remove-cart:hover {
+  color: var(--danger-color);
+}
