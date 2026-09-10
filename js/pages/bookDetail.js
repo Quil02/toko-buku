@@ -140,15 +140,20 @@ async function loadBookDetail() {
 
           <div class="book-detail-actions">
             ${isAuthenticated()
-              ? `<a href="${checkoutUrl}" class="btn btn-primary" id="btnBuyNow">⚡ Beli Langsung</a>
-                 <button class="btn btn-outline" id="btnAddToCart" style="border-color:var(--primary); color:var(--primary);">
+              ? `<a href="${checkoutUrl}" class="btn btn-primary btn-action-buy" id="btnBuyNow">⚡ Beli Langsung</a>
+                 <button class="btn btn-outline btn-action-cart ${alreadyInCart ? 'in-cart' : ''}" id="btnAddToCart">
                    ${cartBtnLabel}
                  </button>
-                 <button class="btn btn-outline" id="btnWishlist">
+                 <button class="btn btn-outline btn-action-wishlist ${alreadyInWishlist ? 'in-wishlist' : ''}" id="btnWishlist">
                    ${alreadyInWishlist ? '❤️ Sudah di Wishlist' : '🤍 Tambah ke Wishlist'}
                  </button>`
-              : `<a href="login.html?redirect=${encodeURIComponent(window.location.href)}" class="btn btn-primary">Masuk untuk Membeli</a>
-                 <a href="login.html?redirect=${encodeURIComponent(window.location.href)}" class="btn btn-outline">Masuk untuk Wishlist</a>`
+              : `<a href="login.html?redirect=${encodeURIComponent(checkoutUrl)}" class="btn btn-primary btn-action-buy" id="btnBuyNow">⚡ Beli Langsung</a>
+                 <button class="btn btn-outline btn-action-cart ${alreadyInCart ? 'in-cart' : ''}" id="btnAddToCart">
+                   ${cartBtnLabel}
+                 </button>
+                 <a href="login.html?redirect=${encodeURIComponent(window.location.href)}" class="btn btn-outline btn-action-wishlist" id="btnWishlist">
+                   🤍 Tambah ke Wishlist
+                 </a>`
             }
           </div>
 
@@ -183,8 +188,7 @@ async function loadBookDetail() {
       }
       addToCart(book);
       btnAddToCart.textContent = '✅ Sudah di Keranjang';
-      btnAddToCart.style.borderColor = 'var(--success)';
-      btnAddToCart.style.color = 'var(--success)';
+      btnAddToCart.classList.add('in-cart');
     });
 
     if (isAuthenticated()) {
@@ -193,9 +197,11 @@ async function loadBookDetail() {
         if (isInWishlist(book.id)) {
           removeFromWishlist(book.id);
           btnWishlist.textContent = '🤍 Tambah ke Wishlist';
+          btnWishlist.classList.remove('in-wishlist');
         } else {
           addToWishlist(book);
           btnWishlist.textContent = '❤️ Sudah di Wishlist';
+          btnWishlist.classList.add('in-wishlist');
         }
       });
     }

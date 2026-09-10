@@ -100,15 +100,82 @@
 }
 
 .book-detail-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.85rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
   margin-bottom: 2rem;
+  width: 100%;
 }
+
 .book-detail-actions .btn {
-  padding: 0.8rem 1.5rem;
-  font-size: 0.95rem;
+  width: 100%;
+  height: 48px;
+  padding: 0 0.85rem;
+  font-size: 0.92rem;
   font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border-radius: var(--radius);
+  white-space: nowrap;
+  transition: var(--transition);
+  cursor: pointer;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.book-detail-actions .btn:hover {
+  transform: translateY(-2px);
+}
+
+.book-detail-actions .btn-action-buy {
+  background-color: var(--primary);
+  color: var(--text-inverse);
+  border: 1px solid var(--primary);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+}
+
+.book-detail-actions .btn-action-buy:hover {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.book-detail-actions .btn-action-cart {
+  border: 1.5px solid var(--primary);
+  color: var(--primary);
+  background-color: transparent;
+}
+
+.book-detail-actions .btn-action-cart:hover {
+  background-color: var(--primary-subtle);
+  border-color: var(--primary-hover);
+  color: var(--primary-hover);
+}
+
+.book-detail-actions .btn-action-cart.in-cart {
+  border-color: var(--success);
+  color: var(--success);
+  background-color: var(--success-bg);
+}
+
+.book-detail-actions .btn-action-wishlist {
+  border: 1.5px solid var(--border-2);
+  color: var(--text);
+  background-color: transparent;
+}
+
+.book-detail-actions .btn-action-wishlist:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+  background-color: var(--danger-bg);
+}
+
+.book-detail-actions .btn-action-wishlist.in-wishlist {
+  border-color: var(--danger);
+  color: var(--danger);
+  background-color: var(--danger-bg);
 }
 
 /* ---- Metadata Grid ---- */
@@ -232,8 +299,13 @@
 .book-detail-skeleton .sk-desc     { height: 12px; width: 100%; margin-top: 0.25rem; }
 .book-detail-skeleton .sk-desc-2   { height: 12px; width: 92%; }
 .book-detail-skeleton .sk-desc-3   { height: 12px; width: 80%; }
-.book-detail-skeleton .sk-actions  { display: flex; gap: 0.75rem; margin-top: 0.75rem; }
-.book-detail-skeleton .sk-action-btn { height: 44px; width: 140px; border-radius: var(--radius); }
+.book-detail-skeleton .sk-actions  {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+.book-detail-skeleton .sk-action-btn { height: 48px; width: 100%; border-radius: var(--radius); }
 
 /* ---- Responsive ---- */
 @media (max-width: 860px) {
@@ -248,4 +320,24 @@
     height: auto;
   }
   .book-detail-skeleton .sk-cover-wrap { height: 260px; }
+
+  .book-detail-actions,
+  .book-detail-skeleton .sk-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+  .book-detail-actions .btn-action-buy,
+  .book-detail-skeleton .sk-action-btn:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 520px) {
+  .book-detail-actions,
+  .book-detail-skeleton .sk-actions {
+    grid-template-columns: 1fr;
+  }
+  .book-detail-actions .btn-action-buy,
+  .book-detail-skeleton .sk-action-btn:first-child {
+    grid-column: auto;
+  }
 }
