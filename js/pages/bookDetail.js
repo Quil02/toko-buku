@@ -1,3 +1,4 @@
+import { initMobileNav } from '../utils/mobileNav.js';
 import { fetchBookById } from '../api/bookApi.js';
 import { addToWishlist, isInWishlist, removeFromWishlist } from '../api/wishlistApi.js';
 import { addToCart, isInCart } from '../api/cartApi.js';
@@ -229,4 +230,5 @@ async function loadBookDetail() {
 }
 
 initNavbarAuth();
+initMobileNav();
 loadBookDetail();

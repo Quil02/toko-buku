@@ -103,3 +103,12 @@
   border-color: var(--border-2);
   color: var(--text);
 }
+
+/* ---- Responsive ---- */
+@media (max-width: 767px) {
+  .auth-card {
+    padding: 1.75rem 1.25rem;
+    border-radius: var(--radius-lg);
+  }
+  .auth-title { font-size: 1.3rem; }
+}

@@ -1,3 +1,4 @@
+import { initMobileNav } from '../utils/mobileNav.js';
 import {
   generatePaymentId,
   formatRupiah,
@@ -459,3 +460,5 @@ if (isCartMode) {
 updateNavbar();
 renderOrderSummary();
 prefillUserData();
+
+initMobileNav();

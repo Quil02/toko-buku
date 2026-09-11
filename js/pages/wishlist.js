@@ -1,3 +1,4 @@
+import { initMobileNav } from '../utils/mobileNav.js';
 /**
  * Logika Halaman Wishlist
  */
@@ -150,6 +151,7 @@ function renderWishlist() {
 
 document.addEventListener('DOMContentLoaded', () => {
   initNavbarAuth();
+initMobileNav();
   renderWishlistLoading();
   // Data dari localStorage = synchronous, tapi skeleton memberi kesan loading yang natural
   setTimeout(() => renderWishlist(), 350);

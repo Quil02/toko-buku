@@ -47,7 +47,20 @@
   grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
 }
-@media (max-width: 600px) { .wishlist-grid { grid-template-columns: 1fr; } }
+/* ---- Responsive ---- */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .wishlist-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .wishlist-container { margin: 1rem auto; }
+  .wishlist-header { flex-direction: column; align-items: flex-start; }
+  .wishlist-grid { grid-template-columns: 1fr; gap: 1rem; }
+  .wishlist-card-cover-wrap { height: 180px; }
+}
 
 /* ---- Card ---- */
 .wishlist-card {

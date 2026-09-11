@@ -1,3 +1,4 @@
+import { initMobileNav } from '../utils/mobileNav.js';
 /**
  * Logika Halaman Keranjang Belanja (Cart)
  * - Guest / tidak login: redirect ke halaman login
@@ -213,6 +214,7 @@ function bindRemoveEvents() {
 // Init
 // ---------------------------------------------------------------
 initNavbarAuth();
+initMobileNav();
 renderCartLoading();
 // Simulasi mikro-delay agar skeleton terasa natural (data dari localStorage = sync)
 setTimeout(() => renderCart(), 350);

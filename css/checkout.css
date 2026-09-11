@@ -22,7 +22,18 @@
   gap: 1.5rem;
   align-items: start;
 }
-@media (max-width: 768px) { .checkout-layout { grid-template-columns: 1fr; } }
+/* Tablet */
+@media (max-width: 1024px) {
+  .checkout-layout { grid-template-columns: 1fr 300px; }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .checkout-layout { grid-template-columns: 1fr; }
+  .checkout-title  { font-size: 1.4rem; }
+  .payment-detail-row { grid-template-columns: 1fr; }
+  .order-summary { position: static; }
+}
 
 /* ---- Form Card ---- */
 .form-card {

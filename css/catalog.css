@@ -313,7 +313,57 @@
 .book-card-skeleton .sk-btn   { height: 32px; width: 68px; border-radius: var(--radius); }
 
 /* ---- Responsive ---- */
-@media (max-width: 900px) {
-  .catalog-container { grid-template-columns: 1fr; }
-  .catalog-sidebar   { position: static; }
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .catalog-container {
+    grid-template-columns: 220px 1fr;
+    gap: 1.25rem;
+  }
+  .books-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1.25rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .catalog-container {
+    grid-template-columns: 1fr;
+    margin-top: 1rem;
+  }
+  .catalog-sidebar {
+    position: static;
+    padding: 1rem;
+  }
+
+  /* Filter sidebar: tampilkan sebagai accordion horizontal */
+  .filter-section { margin-bottom: 1rem; padding-bottom: 0.75rem; }
+
+  /* Toolbar */
+  .catalog-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+  }
+  .search-box-wrapper { min-width: unset; }
+  .sort-wrapper { justify-content: flex-end; }
+
+  /* Books grid: 2 kolom di HP */
+  .books-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.85rem;
+  }
+
+  .book-card-cover-wrap { height: 180px; }
+  .book-card-body { padding: 0.85rem; }
+  .book-card-title { font-size: 0.875rem; }
+  .book-card-price { font-size: 0.9rem; }
+  .book-card-btn  { padding: 0.35rem 0.6rem; font-size: 0.78rem; }
+}
+
+/* Very small phones: 1 kolom */
+@media (max-width: 400px) {
+  .books-grid { grid-template-columns: 1fr; }
 }

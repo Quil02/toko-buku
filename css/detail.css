@@ -308,18 +308,32 @@
 .book-detail-skeleton .sk-action-btn { height: 48px; width: 100%; border-radius: var(--radius); }
 
 /* ---- Responsive ---- */
-@media (max-width: 860px) {
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .book-detail-main {
+    grid-template-columns: 240px 1fr;
+    gap: 2rem;
+    padding: 2rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
   .book-detail-main, .book-detail-skeleton {
     grid-template-columns: 1fr;
-    gap: 2rem;
-    padding: 1.5rem;
+    gap: 1.5rem;
+    padding: 1.25rem;
   }
+  .book-detail-cover-area { align-items: center; }
   .book-detail-cover-wrap,
   .book-detail-skeleton .sk-cover-wrap {
-    max-width: 200px;
+    max-width: 180px;
     height: auto;
   }
-  .book-detail-skeleton .sk-cover-wrap { height: 260px; }
+  .book-detail-skeleton .sk-cover-wrap { height: 240px; }
+  .book-detail-title { font-size: 1.4rem; }
+  .book-detail-price { font-size: 1.5rem; }
 
   .book-detail-actions,
   .book-detail-skeleton .sk-actions {
@@ -329,9 +343,14 @@
   .book-detail-skeleton .sk-action-btn:first-child {
     grid-column: 1 / -1;
   }
+
+  .book-metadata-grid { grid-template-columns: repeat(2, 1fr); }
+
+  .reviews-grid { grid-template-columns: 1fr; }
 }
 
-@media (max-width: 520px) {
+/* Small phones */
+@media (max-width: 420px) {
   .book-detail-actions,
   .book-detail-skeleton .sk-actions {
     grid-template-columns: 1fr;
@@ -340,4 +359,5 @@
   .book-detail-skeleton .sk-action-btn:first-child {
     grid-column: auto;
   }
+  .book-metadata-grid { grid-template-columns: 1fr 1fr; }
 }

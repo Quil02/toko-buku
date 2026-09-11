@@ -1,3 +1,4 @@
+import { initMobileNav } from '../utils/mobileNav.js';
 import {
   getPaymentHistory,
   clearPaymentHistory,
@@ -199,4 +200,5 @@ btnClearHistory.addEventListener("click", () => {
 });
 
 initNavbarAuth();
+initMobileNav();
 renderHistory();

@@ -1,3 +1,4 @@
+import { initMobileNav } from '../utils/mobileNav.js';
 import { fetchBooks } from '../api/bookApi.js';
 import { getUser, isAuthenticated, isGuest, clearAuth } from '../utils/authStorage.js';
 
@@ -277,4 +278,5 @@ categoryFilterGroup?.addEventListener('change', () => {
 
 // Initial Setup
 initNavbarAuth();
+initMobileNav();
 loadBooksFromApi();
