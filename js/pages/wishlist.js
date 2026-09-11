@@ -48,7 +48,7 @@ function initNavbarAuth() {
 
     document.getElementById('btnLogout')?.addEventListener('click', () => {
       clearAuth();
-      window.location.reload();
+      window.location.href = 'index.html';
     });
     if (authWarning) authWarning.style.display = 'none';
   } else {
