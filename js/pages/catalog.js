@@ -9,7 +9,6 @@ try {
   const cached = sessionStorage.getItem('tokobuku_cached_books');
   if (cached) {
     masterBooks = JSON.parse(cached);
-    allBooks = [...masterBooks];
   }
 } catch (e) {}
 
@@ -127,20 +126,22 @@ function renderBooks(books) {
 
 /**
  * Memeriksa apakah buku cocok dengan kata kunci pencarian.
- * - Judul buku: case sensitive
- * - Penulis: case sensitive
+ * - Judul buku: case-insensitive
+ * - Penulis: case-insensitive
  */
 function matchesSearch(book, searchTerm) {
   if (!searchTerm) return true;
 
-  // 1. Judul buku — Case Sensitive
-  const matchTitle = (typeof book.title === "string" && book.title.includes(searchTerm)) ||
-                     (typeof book.subtitle === "string" && book.subtitle.includes(searchTerm));
+  const term = searchTerm.toLowerCase();
 
-  // 2. Penulis — Case Sensitive
+  // 1. Judul buku — case-insensitive
+  const matchTitle = (typeof book.title === "string" && book.title.toLowerCase().includes(term)) ||
+                     (typeof book.subtitle === "string" && book.subtitle.toLowerCase().includes(term));
+
+  // 2. Penulis — case-insensitive
   const matchAuthor = Array.isArray(book.authors)
-    ? book.authors.some(author => typeof author === "string" && author.includes(searchTerm))
-    : (typeof book.authors === "string" && book.authors.includes(searchTerm));
+    ? book.authors.some(author => typeof author === "string" && author.toLowerCase().includes(term))
+    : (typeof book.authors === "string" && book.authors.toLowerCase().includes(term));
 
   return matchTitle || matchAuthor;
 }
@@ -173,7 +174,7 @@ function applyClientFilters() {
   }
 
   if (filtered.length === 0 && searchTerm) {
-    renderEmpty(`Tidak ada buku yang sesuai dengan pencarian "${searchTerm}". Catatan: pencarian judul buku dan nama penulis bersifat case-sensitive.`);
+    renderEmpty(`Tidak ada buku yang sesuai dengan pencarian "${searchTerm}". Coba gunakan kata kunci yang berbeda.`);
     return;
   }
 
@@ -182,8 +183,12 @@ function applyClientFilters() {
 
 async function loadBooksFromApi() {
   const searchTerm = searchInput.value.trim();
-  const query = searchTerm || 'programming';
   const checkedCategory = document.querySelector('input[name="category"]:checked')?.value || '';
+
+  // query hanya dikirim saat user mengetik sesuatu di search bar.
+  // Saat "Semua Kategori" tanpa search → fetchBooks handle sendiri (parallel fetch).
+  // Saat kategori spesifik dipilih tanpa search → query = nama kategori.
+  const query = searchTerm || (checkedCategory ? checkedCategory : '');
 
   if (allBooks.length === 0) {
     renderLoading();
@@ -253,7 +258,21 @@ resetFilterBtn?.addEventListener('click', () => {
   sortSelect.value = 'default';
   const defaultRadio = document.querySelector('input[name="category"][value=""]');
   if (defaultRadio) defaultRadio.checked = true;
+  try { sessionStorage.removeItem('tokobuku_active_category'); } catch (e) {}
   loadBooksFromApi();
+});
+
+// Restore kategori yang terakhir dipilih dari sessionStorage
+try {
+  const savedCategory = sessionStorage.getItem('tokobuku_active_category') || '';
+  const targetRadio = document.querySelector(`input[name="category"][value="${savedCategory}"]`);
+  if (targetRadio) targetRadio.checked = true;
+} catch (e) {}
+
+// Simpan kategori aktif ke sessionStorage setiap kali berubah
+categoryFilterGroup?.addEventListener('change', () => {
+  const activeCategory = document.querySelector('input[name="category"]:checked')?.value || '';
+  try { sessionStorage.setItem('tokobuku_active_category', activeCategory); } catch (e) {}
 });
 
 // Initial Setup

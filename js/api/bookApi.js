@@ -218,12 +218,52 @@ export function normalizeWorkDetail(item, workId, extraDoc = null) {
  * @param {number|null} options.page - Jika null, akan diacak otomatis
  * @returns {Promise<Array>}
  */
-export async function fetchBooks({ query = 'programming', category = '', maxResults = 20, page = null } = {}) {
-  try {
-    let searchParam = query.trim() || 'programming';
+// Kategori yang dipakai untuk mode "Semua Kategori"
+const ALL_CATEGORIES = ['Computers', 'Fiction', 'Business', 'Science', 'History'];
 
-    const isDefaultQuery = !query || query.trim() === 'programming';
-    const randomizedPage = page !== null ? page : (isDefaultQuery ? getRandomPage(1, 10) : 1);
+/**
+ * Fetch buku dari satu subject/kategori tertentu
+ */
+async function fetchBySubject({ subject, perPage, page }) {
+  const url = `${OPEN_LIBRARY_BASE_URL}/search.json?q=${encodeURIComponent(subject)}&subject=${encodeURIComponent(subject)}&limit=${perPage}&page=${page}`;
+  const response = await fetch(url);
+  if (!response.ok) return [];
+  const data = await response.json();
+  if (!data.docs || !Array.isArray(data.docs)) return [];
+  return data.docs.map(normalizeBookData).filter(b => b && b.hasRealCover);
+}
+
+export async function fetchBooks({ query = '', category = '', maxResults = 24, page = null } = {}) {
+  try {
+    // Mode "Semua Kategori" — tidak ada query pengguna & tidak ada kategori dipilih:
+    // fetch dari setiap kategori secara paralel agar hasil merata
+    if (!query && !category) {
+      const perCategory = Math.ceil(maxResults / ALL_CATEGORIES.length);
+      const results = await Promise.allSettled(
+        ALL_CATEGORIES.map(subject =>
+          fetchBySubject({ subject, perPage: perCategory, page: getRandomPage(1, 5) })
+        )
+      );
+
+      // Gabungkan, hapus duplikat berdasarkan id, lalu acak urutan
+      const seen = new Set();
+      const merged = [];
+      for (const result of results) {
+        if (result.status === 'fulfilled') {
+          for (const book of result.value) {
+            if (!seen.has(book.id)) {
+              seen.add(book.id);
+              merged.push(book);
+            }
+          }
+        }
+      }
+      return merged.sort(() => Math.random() - 0.5).slice(0, maxResults);
+    }
+
+    // Mode kategori spesifik atau pencarian — fetch normal
+    const searchParam = query.trim() || category;
+    const randomizedPage = page !== null ? page : 1;
 
     let url = `${OPEN_LIBRARY_BASE_URL}/search.json?q=${encodeURIComponent(searchParam)}&limit=${maxResults}&page=${randomizedPage}`;
 
@@ -241,7 +281,6 @@ export async function fetchBooks({ query = 'programming', category = '', maxResu
       return [];
     }
 
-    // Acak urutan tampilan buku agar semakin bervariasi
     const books = data.docs.map(normalizeBookData).filter(b => b && b.hasRealCover);
     return books.sort(() => Math.random() - 0.5);
   } catch (error) {
