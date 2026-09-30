@@ -1,104 +1,88 @@
 import { CONFIG } from '../config.js';
 
-const MOCK_USERS_KEY = CONFIG.MOCK_USERS_KEY || 'mock_registered_users';
+const API_URL = CONFIG.API_BASE_URL;
 
-function getStoredUsers() {
-  try {
-    const data = localStorage.getItem(MOCK_USERS_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch (err) {
-    console.error('Failed to read users from localStorage:', err);
-    return [];
-  }
+/**
+ * Get authorization header with JWT token
+ */
+function getAuthHeader() {
+  const token = localStorage.getItem(CONFIG.TOKEN_KEY);
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
 
-function saveUsers(users) {
-  try {
-    localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users));
-  } catch (err) {
-    console.error('Failed to save users to localStorage:', err);
-  }
-}
-
-function delay(ms = 300) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
+/**
+ * Register new user
+ * @param {Object} userData - { fullName, email, password }
+ * @returns {Promise<Object>}
+ */
 export async function registerRequest(userData) {
-  await delay();
-
   const { fullName, email, password } = userData;
 
   if (!fullName || !email || !password) {
     throw new Error('Semua data wajib diisi!');
   }
 
-  const users = getStoredUsers();
-  const normalizedEmail = email.trim().toLowerCase();
+  try {
+    const response = await fetch(`${API_URL}/api/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ fullName, email, password }),
+    });
 
-  const normalizedFullName = fullName.trim().toLowerCase();
+    const data = await response.json();
 
-  const existingByEmail = users.find(
-    (u) => u.email.toLowerCase() === normalizedEmail
-  );
-  if (existingByEmail) {
-    throw new Error('Email sudah terdaftar. Silakan gunakan email lain atau masuk ke akun Anda.');
+    if (!response.ok) {
+      throw new Error(data.detail || 'Registrasi gagal!');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Registration error:', error);
+    throw error;
   }
-
-  const existingByName = users.find(
-    (u) => u.fullName.toLowerCase() === normalizedFullName
-  );
-  if (existingByName) {
-    throw new Error('Nama pengguna sudah digunakan. Silakan gunakan nama lain.');
-  }
-
-  const newUser = {
-    id: `user_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-    fullName: fullName.trim(),
-    email: normalizedEmail,
-    password: password,
-    createdAt: new Date().toISOString()
-  };
-
-  users.push(newUser);
-  saveUsers(users);
-
-  return {
-    success: true,
-    message: 'Registrasi berhasil!'
-  };
 }
 
+/**
+ * Login user
+ * @param {string} emailOrUsername 
+ * @param {string} password 
+ * @returns {Promise<Object>}
+ */
 export async function loginRequest(emailOrUsername, password) {
-  await delay();
-
   if (!emailOrUsername || !password) {
     throw new Error('Email/Username dan kata sandi wajib diisi!');
   }
 
-  const users = getStoredUsers();
-  const target = emailOrUsername.trim().toLowerCase();
+  try {
+    const response = await fetch(`${API_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ emailOrUsername, password }),
+    });
 
-  const isEmail = target.includes('@');
-  const user = users.find((u) => {
-    const matchEmail = u.email.toLowerCase() === target;
-    const matchName = !isEmail && u.fullName.toLowerCase() === target;
-    return (matchEmail || matchName) && u.password === password;
-  });
+    const data = await response.json();
 
-  if (!user) {
-    throw new Error('Email/Username atau kata sandi salah!');
-  }
-
-  return {
-    success: true,
-    token: `mock-token-${Date.now()}`,
-    user: {
-      id: user.id,
-      fullName: user.fullName,
-      email: user.email
+    if (!response.ok) {
+      throw new Error(data.detail || 'Login gagal!');
     }
-  };
+
+    // Store token and user data
+    if (data.token) {
+      localStorage.setItem(CONFIG.TOKEN_KEY, data.token);
+    }
+    if (data.user) {
+      localStorage.setItem(CONFIG.USER_KEY, JSON.stringify(data.user));
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Login error:', error);
+    throw error;
+  }
 }
 
 export default {

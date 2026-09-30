@@ -1,99 +1,135 @@
+import { CONFIG } from '../config.js';
+
+const API_URL = CONFIG.API_BASE_URL;
+
 /**
- * Wishlist API Service
- * Mengelola data daftar keinginan pengguna via localStorage
- * Data dipisah per akun menggunakan identifier unik user
+ * Get authorization header with JWT token
  */
-
-import { getUser } from '../utils/authStorage.js';
-
-function getWishlistKey() {
-  const user = getUser();
-  const uid = user?.id || user?.email || 'guest';
-  return `bookstore_wishlist_${uid}`;
+function getAuthHeader() {
+  const token = localStorage.getItem(CONFIG.TOKEN_KEY);
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
 
-function getStoredWishlist() {
+/**
+ * Get all wishlist items
+ * @returns {Promise<Array>}
+ */
+export async function getWishlist() {
   try {
-    const raw = localStorage.getItem(getWishlistKey());
-    return raw ? JSON.parse(raw) : [];
+    const response = await fetch(`${API_URL}/api/wishlist`, {
+      method: 'GET',
+      headers: {
+        ...getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+    return data;
   } catch (error) {
-    console.error('Gagal mengambil wishlist dari localStorage:', error);
+    console.error('Get wishlist error:', error);
     return [];
   }
 }
 
-function saveStoredWishlist(items) {
-  try {
-    localStorage.setItem(getWishlistKey(), JSON.stringify(items));
-  } catch (error) {
-    console.error('Gagal menyimpan wishlist ke localStorage:', error);
-  }
-}
-
 /**
- * Mengambil semua item wishlist milik user yang sedang login
- * @returns {Array}
+ * Add book to wishlist
+ * @param {Object} book 
+ * @returns {Promise<boolean>}
  */
-export function getWishlist() {
-  return getStoredWishlist();
-}
-
-/**
- * Menambahkan buku ke dalam wishlist jika belum ada
- * @param {Object} book Objek buku
- * @returns {boolean} Status berhasil atau sudah ada
- */
-export function addToWishlist(book) {
+export async function addToWishlist(book) {
   if (!book || !book.id) {
     throw new Error('Data buku tidak valid untuk ditambahkan ke wishlist.');
   }
 
-  const wishlist = getStoredWishlist();
-  const exists = wishlist.some((item) => item.id === book.id);
+  try {
+    const response = await fetch(`${API_URL}/api/wishlist`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify({
+        id: book.id,
+        title: book.title || 'Tanpa Judul',
+        authors: book.authors || ['Anonim'],
+        price: book.price || 0,
+        stock: typeof book.stock === 'number' ? book.stock : 10,
+        thumbnail: book.thumbnail || 'https://via.placeholder.com/150x220?text=No+Cover',
+        category: book.category || 'Umum',
+      }),
+    });
 
-  if (exists) {
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return false;
+    }
+
+    return data.success;
+  } catch (error) {
+    console.error('Add to wishlist error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Remove book from wishlist
+ * @param {string} bookId 
+ * @returns {Promise<Array>}
+ */
+export async function removeFromWishlist(bookId) {
+  if (!bookId) return [];
+
+  try {
+    const response = await fetch(`${API_URL}/api/wishlist/${bookId}`, {
+      method: 'DELETE',
+      headers: {
+        ...getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      console.error('Remove from wishlist failed');
+    }
+    
+    // Return updated wishlist
+    return await getWishlist();
+  } catch (error) {
+    console.error('Remove from wishlist error:', error);
+    return [];
+  }
+}
+
+/**
+ * Check if book is in wishlist
+ * @param {string} bookId 
+ * @returns {Promise<boolean>}
+ */
+export async function isInWishlist(bookId) {
+  if (!bookId) return false;
+
+  try {
+    const response = await fetch(`${API_URL}/api/wishlist/check/${bookId}`, {
+      method: 'GET',
+      headers: {
+        ...getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const data = await response.json();
+    return data.inWishlist || false;
+  } catch (error) {
+    console.error('Check wishlist error:', error);
     return false;
   }
-
-  const itemToSave = {
-    id: book.id,
-    title: book.title || 'Tanpa Judul',
-    authors: book.authors || ['Anonim'],
-    price: book.price || 0,
-    stock: typeof book.stock === 'number' ? book.stock : 10,
-    thumbnail: book.thumbnail || 'https://via.placeholder.com/150x220?text=No+Cover',
-    category: book.category || 'Umum',
-    addedAt: new Date().toISOString()
-  };
-
-  wishlist.unshift(itemToSave);
-  saveStoredWishlist(wishlist);
-  return true;
-}
-
-/**
- * Menghapus buku dari wishlist berdasarkan ID
- * @param {string} bookId ID buku
- * @returns {Array} Daftar wishlist terbaru
- */
-export function removeFromWishlist(bookId) {
-  if (!bookId) return getStoredWishlist();
-
-  const wishlist = getStoredWishlist();
-  const filtered = wishlist.filter((item) => item.id !== bookId);
-  saveStoredWishlist(filtered);
-  return filtered;
-}
-
-/**
- * Mengecek apakah buku dengan ID tertentu ada di wishlist
- * @param {string} bookId
- * @returns {boolean}
- */
-export function isInWishlist(bookId) {
-  if (!bookId) return false;
-  const wishlist = getStoredWishlist();
-  return wishlist.some((item) => item.id === bookId);
 }
 
 export default {

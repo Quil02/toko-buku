@@ -1,123 +1,199 @@
+import { CONFIG } from '../config.js';
+
+const API_URL = CONFIG.API_BASE_URL;
+
 /**
- * Cart API Service
- * Mengelola data keranjang belanja via localStorage
- * - Guest: cart disimpan dengan key 'guest', hilang saat clear browser
- * - User login: cart disimpan per akun (by id/email), persisten
+ * Get authorization header with JWT token
  */
-
-import { getUser, isAuthenticated } from '../utils/authStorage.js';
-
-function getCartKey() {
-  if (isAuthenticated()) {
-    const user = getUser();
-    const uid = user?.id || user?.email || 'user';
-    return `tokobuku_cart_${uid}`;
-  }
-  return 'tokobuku_cart_guest';
+function getAuthHeader() {
+  const token = localStorage.getItem(CONFIG.TOKEN_KEY);
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
 
-function getStoredCart() {
+/**
+ * Get all cart items
+ * @returns {Promise<Array>}
+ */
+export async function getCart() {
   try {
-    const raw = localStorage.getItem(getCartKey());
-    return raw ? JSON.parse(raw) : [];
+    const response = await fetch(`${API_URL}/api/cart`, {
+      method: 'GET',
+      headers: {
+        ...getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+    return data;
   } catch (error) {
-    console.error('Gagal membaca cart dari localStorage:', error);
+    console.error('Get cart error:', error);
     return [];
   }
 }
 
-function saveStoredCart(items) {
-  try {
-    localStorage.setItem(getCartKey(), JSON.stringify(items));
-  } catch (error) {
-    console.error('Gagal menyimpan cart ke localStorage:', error);
-  }
-}
-
 /**
- * Ambil semua item di cart
- * @returns {Array}
+ * Add book to cart
+ * @param {Object} book 
+ * @returns {Promise<boolean>}
  */
-export function getCart() {
-  return getStoredCart();
-}
-
-/**
- * Tambah buku ke cart. Jika sudah ada, abaikan (produk digital = 1 judul per item).
- * @param {Object} book
- * @returns {boolean} true jika berhasil
- */
-export function addToCart(book) {
+export async function addToCart(book) {
   if (!book || !book.id) {
     throw new Error('Data buku tidak valid untuk ditambahkan ke cart.');
   }
 
-  const cart = getStoredCart();
-  const exists = cart.some(item => item.id === book.id);
-
-  if (exists) {
-    return false; // Produk digital: satu judul cukup satu item
-  }
-
-  cart.push({
-    id: book.id,
-    title: book.title || 'Tanpa Judul',
-    authors: book.authors || ['Anonim'],
-    price: book.price || 0,
-    thumbnail: book.thumbnail || 'https://via.placeholder.com/150x220?text=No+Cover',
-    category: book.category || (book.categories?.[0]) || 'Umum',
-    addedAt: new Date().toISOString(),
-  });
-
-  saveStoredCart(cart);
-  return true;
-}
-
-/**
- * Hapus item dari cart berdasarkan ID
- * @param {string} bookId
- */
-export function removeFromCart(bookId) {
-  if (!bookId) return;
-  const cart = getStoredCart().filter(item => item.id !== bookId);
-  saveStoredCart(cart);
-}
-
-/**
- * Kosongkan seluruh cart
- */
-export function clearCart() {
   try {
-    localStorage.removeItem(getCartKey());
+    const response = await fetch(`${API_URL}/api/cart`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify({
+        id: book.id,
+        title: book.title || 'Tanpa Judul',
+        authors: book.authors || ['Anonim'],
+        price: book.price || 0,
+        thumbnail: book.thumbnail || 'https://via.placeholder.com/150x220?text=No+Cover',
+        category: book.category || (book.categories?.[0]) || 'Umum',
+      }),
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return false;
+    }
+
+    return data.success;
   } catch (error) {
-    console.error('Gagal mengosongkan cart:', error);
+    console.error('Add to cart error:', error);
+    throw error;
   }
 }
 
 /**
- * Cek apakah buku sudah ada di cart
- * @param {string} bookId
- * @returns {boolean}
+ * Remove item from cart
+ * @param {string} bookId 
  */
-export function isInCart(bookId) {
+export async function removeFromCart(bookId) {
+  if (!bookId) return;
+
+  try {
+    const response = await fetch(`${API_URL}/api/cart/${bookId}`, {
+      method: 'DELETE',
+      headers: {
+        ...getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      console.error('Remove from cart failed');
+    }
+  } catch (error) {
+    console.error('Remove from cart error:', error);
+  }
+}
+
+/**
+ * Clear all cart items
+ */
+export async function clearCart() {
+  try {
+    const response = await fetch(`${API_URL}/api/cart`, {
+      method: 'DELETE',
+      headers: {
+        ...getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      console.error('Clear cart failed');
+    }
+  } catch (error) {
+    console.error('Clear cart error:', error);
+  }
+}
+
+/**
+ * Check if book is in cart
+ * @param {string} bookId 
+ * @returns {Promise<boolean>}
+ */
+export async function isInCart(bookId) {
   if (!bookId) return false;
-  return getStoredCart().some(item => item.id === bookId);
+
+  try {
+    const response = await fetch(`${API_URL}/api/cart/check/${bookId}`, {
+      method: 'GET',
+      headers: {
+        ...getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const data = await response.json();
+    return data.inCart || false;
+  } catch (error) {
+    console.error('Check cart error:', error);
+    return false;
+  }
 }
 
 /**
- * Hitung total harga semua item di cart
- * @returns {number}
+ * Get cart total price
+ * @returns {Promise<number>}
  */
-export function getCartTotal() {
-  return getStoredCart().reduce((total, item) => total + item.price, 0);
+export async function getCartTotal() {
+  try {
+    const response = await fetch(`${API_URL}/api/cart/total`, {
+      method: 'GET',
+      headers: {
+        ...getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      return 0;
+    }
+
+    const data = await response.json();
+    return data.total || 0;
+  } catch (error) {
+    console.error('Get cart total error:', error);
+    return 0;
+  }
 }
 
 /**
- * Hitung jumlah item unik di cart
- * @returns {number}
+ * Get cart item count
+ * @returns {Promise<number>}
  */
-export function getCartCount() {
-  return getStoredCart().length;
+export async function getCartCount() {
+  try {
+    const response = await fetch(`${API_URL}/api/cart/total`, {
+      method: 'GET',
+      headers: {
+        ...getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      return 0;
+    }
+
+    const data = await response.json();
+    return data.count || 0;
+  } catch (error) {
+    console.error('Get cart count error:', error);
+    return 0;
+  }
 }
 
 export default {

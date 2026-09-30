@@ -1,4 +1,5 @@
 export const CONFIG = {
+  API_BASE_URL: "http://localhost:8000",
   GOOGLE_BOOK_API_BASE_URL: "https://www.googleapis.com/books/v1/volumes",
   TOKEN_KEY: "bookstore_auth_token",
   USER_KEY: "bookstore_user_data",

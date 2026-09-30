@@ -1,15 +1,13 @@
+import { CONFIG } from '../config.js';
+
+const API_URL = CONFIG.API_BASE_URL;
+
 /**
- * paymentApi.js
- * Menangani semua logic terkait pembayaran dan history pembelian
- * Data dipisah per akun menggunakan identifier unik user
+ * Get authorization header with JWT token
  */
-
-import { getUser } from '../utils/authStorage.js';
-
-function getPaymentHistoryKey() {
-  const user = getUser();
-  const uid = user?.id || user?.email || 'guest';
-  return `tokobuku_payment_history_${uid}`;
+function getAuthHeader() {
+  const token = localStorage.getItem(CONFIG.TOKEN_KEY);
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
 
 /**
@@ -22,17 +20,6 @@ export const PAYMENT_METHOD_LABELS = {
   ovo: 'OVO',
   dana: 'DANA',
 };
-
-/**
- * Generate ID pembayaran unik
- * Format: TBK-<timestamp_base36>-<random_4char>
- * @returns {string}
- */
-export function generatePaymentId() {
-  const timestamp = Date.now().toString(36).toUpperCase();
-  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-  return `TBK-${timestamp}-${random}`;
-}
 
 /**
  * Format angka ke format Rupiah
@@ -64,44 +51,83 @@ export function formatDate(dateInput) {
 }
 
 /**
- * Simpan transaksi pembayaran baru ke localStorage (per user)
+ * Save payment transaction to backend
  * @param {Object} transaction
+ * @returns {Promise<boolean>}
  */
-export function savePayment(transaction) {
+export async function savePayment(transaction) {
   try {
-    const history = getPaymentHistory();
-    history.unshift(transaction);
-    localStorage.setItem(getPaymentHistoryKey(), JSON.stringify(history));
+    const response = await fetch(`${API_URL}/api/transactions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify({
+        items: transaction.items,
+        total: transaction.total,
+        paymentMethod: transaction.paymentMethod,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Save payment failed');
+      return false;
+    }
+
     return true;
-  } catch (err) {
-    console.error('Gagal menyimpan transaksi ke localStorage:', err);
+  } catch (error) {
+    console.error('Save payment error:', error);
     return false;
   }
 }
 
 /**
- * Ambil semua riwayat pembayaran milik user yang sedang login
- * @returns {Array}
+ * Get payment history from backend
+ * @returns {Promise<Array>}
  */
-export function getPaymentHistory() {
+export async function getPaymentHistory() {
   try {
-    const raw = localStorage.getItem(getPaymentHistoryKey());
-    return raw ? JSON.parse(raw) : [];
-  } catch (err) {
-    console.error('Gagal membaca riwayat pembayaran:', err);
+    const response = await fetch(`${API_URL}/api/transactions`, {
+      method: 'GET',
+      headers: {
+        ...getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Get payment history error:', error);
     return [];
   }
 }
 
 /**
- * Hapus semua riwayat pembayaran milik user yang sedang login
+ * Clear payment history from backend
+ * @returns {Promise<boolean>}
  */
-export function clearPaymentHistory() {
+export async function clearPaymentHistory() {
   try {
-    localStorage.removeItem(getPaymentHistoryKey());
+    const response = await fetch(`${API_URL}/api/transactions`, {
+      method: 'DELETE',
+      headers: {
+        ...getAuthHeader(),
+      },
+    });
+
+    if (!response.ok) {
+      console.error('Clear payment history failed');
+      return false;
+    }
+
     return true;
-  } catch (err) {
-    console.error('Gagal menghapus riwayat pembayaran:', err);
+  } catch (error) {
+    console.error('Clear payment history error:', error);
     return false;
   }
 }
