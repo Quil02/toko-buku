@@ -25,29 +25,45 @@ Aplikasi toko buku online dengan frontend JavaScript dan backend Python.
 
 ## Quick Start
 
-### 1. Start Backend
+### Cara cepat — satu perintah, satu port
 
-```bash
-cd backend
-pip install -r requirements.txt
-./start_server.sh
+Windows (double-click `run.bat`, atau dari terminal):
+
+```powershell
+run.bat
 ```
 
-Backend: **http://localhost:8000**  
-API Docs: **http://localhost:8000/docs**
+Alternatif:
 
-### 2. Start Frontend
+```powershell
+.venv\Scripts\python.exe run.py
+# atau
+uv run python run.py
+```
+
+Lalu buka **http://localhost:8000** (browser terbuka otomatis).
+Website, API, dan database berjalan dari satu server — tidak perlu terminal kedua.
+
+- Website: **http://localhost:8000**
+- API Docs: **http://localhost:8000/docs**
+- Tekan `Ctrl+C` untuk berhenti.
+
+### Cara manual — backend & frontend terpisah
 
 ```bash
-# Di terminal baru, dari root directory
+# Terminal 1
+cd backend
+python -m uvicorn simple_api:app --host 0.0.0.0 --port 8000 --reload
+
+# Terminal 2 (dari root project)
 python -m http.server 3000
 ```
 
-Frontend: **http://localhost:3000**
+Frontend: **http://localhost:3000** — Backend: **http://localhost:8000**
 
-### 3. Test Aplikasi
+### Test Aplikasi
 
-1. Buka http://localhost:3000
+1. Buka http://localhost:8000
 2. Register akun baru
 3. Login
 4. Browse buku
@@ -58,6 +74,8 @@ Frontend: **http://localhost:3000**
 
 ```
 tokoBuku/
+├── run.py                # Jalankan website + API dalam satu perintah
+├── run.bat               # Shortcut Windows (double-click)
 ├── backend/              # Backend Python API
 │   ├── simple_api.py     # FastAPI application
 │   ├── start_server.sh   # Server startup
