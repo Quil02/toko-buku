@@ -125,8 +125,8 @@ async function loadBookDetail() {
     breadcrumbTitle.textContent = book.title;
     document.title = `${book.title} - TokoBuku`;
 
-    const alreadyInWishlist = isInWishlist(book.id);
-    const alreadyInCart     = isInCart(book.id);
+    const alreadyInWishlist = await isInWishlist(book.id);
+    const alreadyInCart     = await isInCart(book.id);
     const checkoutUrl       = buildCheckoutUrl(book);
 
     const cartBtnLabel = alreadyInCart ? '✅ Sudah di Keranjang' : '🛒 Tambah ke Keranjang';
@@ -192,27 +192,50 @@ async function loadBookDetail() {
     `;
 
     if (isUserLoggedIn) {
+      let inCart = alreadyInCart;
+
       const btnAddToCart = document.getElementById('btnAddToCart');
-      btnAddToCart?.addEventListener('click', () => {
-        if (isInCart(book.id)) {
+      btnAddToCart?.addEventListener('click', async () => {
+        if (inCart) {
           window.location.href = 'cart.html';
           return;
         }
-        addToCart(book);
-        btnAddToCart.textContent = '✅ Sudah di Keranjang';
-        btnAddToCart.classList.add('in-cart');
+
+        btnAddToCart.disabled = true;
+        try {
+          const added = await addToCart(book);
+          if (added) {
+            inCart = true;
+            btnAddToCart.textContent = '✅ Sudah di Keranjang';
+            btnAddToCart.classList.add('in-cart');
+          }
+        } catch (error) {
+          console.error('Gagal menambahkan ke keranjang:', error);
+        } finally {
+          btnAddToCart.disabled = false;
+        }
       });
 
       const btnWishlist = document.getElementById('btnWishlist');
-      btnWishlist?.addEventListener('click', () => {
-        if (isInWishlist(book.id)) {
-          removeFromWishlist(book.id);
-          btnWishlist.textContent = '🤍 Tambah ke Wishlist';
-          btnWishlist.classList.remove('in-wishlist');
-        } else {
-          addToWishlist(book);
-          btnWishlist.textContent = '❤️ Sudah di Wishlist';
-          btnWishlist.classList.add('in-wishlist');
+      btnWishlist?.addEventListener('click', async () => {
+        btnWishlist.disabled = true;
+        try {
+          const inWishlist = await isInWishlist(book.id);
+          if (inWishlist) {
+            await removeFromWishlist(book.id);
+            btnWishlist.textContent = '🤍 Tambah ke Wishlist';
+            btnWishlist.classList.remove('in-wishlist');
+          } else {
+            const added = await addToWishlist(book);
+            if (added) {
+              btnWishlist.textContent = '❤️ Sudah di Wishlist';
+              btnWishlist.classList.add('in-wishlist');
+            }
+          }
+        } catch (error) {
+          console.error('Gagal memperbarui wishlist:', error);
+        } finally {
+          btnWishlist.disabled = false;
         }
       });
     }

@@ -16,7 +16,7 @@ import webbrowser
 from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -53,6 +53,10 @@ def create_app() -> FastAPI:
     @app.get("/", include_in_schema=False)
     async def home():
         return FileResponse(ROOT / "index.html")
+
+    @app.get("/favicon.ico", include_in_schema=False)
+    async def favicon():
+        return Response(status_code=204)
 
     # Semua request lain (/api/..., /docs, /health) diteruskan ke backend.
     app.mount("/", api_app)

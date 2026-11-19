@@ -36,8 +36,8 @@ export async function getCart() {
 }
 
 /**
- * Add book to cart
- * @param {Object} book 
+ * Add book to cart (buku digital: 1 judul = 1 eksemplar)
+ * @param {Object} book
  * @returns {Promise<boolean>}
  */
 export async function addToCart(book) {
@@ -63,12 +63,13 @@ export async function addToCart(book) {
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
       return false;
     }
 
-    return data.success;
+    // Jika buku sudah ada, tetap dianggap berhasil (tidak dobel).
+    return Boolean(data.success);
   } catch (error) {
     console.error('Add to cart error:', error);
     throw error;

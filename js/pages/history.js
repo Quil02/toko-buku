@@ -36,40 +36,24 @@ function initNavbarAuth() {
   }
 }
 
-// ---------------------------------------------------------------
-// Render info detail pembayaran
-// ---------------------------------------------------------------
-function renderPaymentDetail(detail) {
-  if (!detail) return "";
+// Buku digital: satu-satunya cara "membaca" adalah membuka halaman bukunya.
+function buildReadUrl(bookId) {
+  if (!bookId) return "";
+  const cleanId = String(bookId).replace(/^\/works\//, "").replace(/^\//, "");
+  return `https://openlibrary.org/works/${encodeURIComponent(cleanId)}`;
+}
 
-  if (detail.type === "bank") {
-    return `
-      <div class="history-payment-detail">
-        <span class="history-detail-label">🏦 Rekening:</span>
-        <span class="history-detail-value">${detail.accountNumber || "-"}</span>
-        <span class="history-detail-sep">·</span>
-        <span class="history-detail-label">Exp:</span>
-        <span class="history-detail-value">${detail.expiry || "-"}</span>
-        <span class="history-detail-sep">·</span>
-        <span class="history-detail-label">CVV:</span>
-        <span class="history-detail-value">${detail.cvv || "***"}</span>
-        <span class="history-detail-sep">·</span>
-        <span class="history-detail-label">a.n.</span>
-        <span class="history-detail-value">${detail.accountName || "-"}</span>
-      </div>
-    `;
-  }
-
-  if (detail.type === "ewallet") {
-    return `
-      <div class="history-payment-detail">
-        <span class="history-detail-label">📱 No. HP:</span>
-        <span class="history-detail-value">${detail.phone || "-"}</span>
-      </div>
-    `;
-  }
-
-  return "";
+function renderReadLink(bookId) {
+  const url = buildReadUrl(bookId);
+  if (!url) return "";
+  return `
+    <a
+      href="${url}"
+      target="_blank"
+      rel="noopener"
+      style="display:inline-block; margin-top:0.35rem; font-size:0.8rem; font-weight:600; color:var(--primary); text-decoration:none;"
+    >📖 Baca Buku</a>
+  `;
 }
 
 // ---------------------------------------------------------------
@@ -85,6 +69,7 @@ function renderSingleCard(tx) {
       <img
         src="${thumbnail}"
         alt="${title}"
+        loading="lazy"
         onerror="this.src='${FALLBACK_IMG}'"
       />
       <div class="history-card-info">
@@ -95,7 +80,7 @@ function renderSingleCard(tx) {
           <span class="history-payment-method">${tx.paymentMethodLabel}</span>
           <span>Pembeli: ${tx.buyer?.name || "-"}</span>
         </div>
-        ${renderPaymentDetail(tx.paymentDetail)}
+        ${renderReadLink(tx.book?.id)}
       </div>
       <div class="history-card-price">
         <div class="history-price-value">${formatRupiah(tx.total)}</div>
@@ -126,7 +111,6 @@ function renderCartGroup(tx) {
         <span class="history-cart-group-date">${dateStr}</span>
       </div>
     </div>
-    ${tx.paymentDetail ? `<div class="history-cart-payment-detail">${renderPaymentDetail(tx.paymentDetail)}</div>` : ""}
   `;
 
   const itemCards = items.map((item, index) => {
@@ -139,14 +123,16 @@ function renderCartGroup(tx) {
         <img
           src="${thumbnail}"
           alt="${title}"
+          loading="lazy"
           onerror="this.src='${FALLBACK_IMG}'"
         />
         <div class="history-card-info">
           <div class="history-book-title">${title}</div>
           <div class="history-book-author">${author}</div>
           <div class="history-meta">
-            <span>Item ${index + 1} dari ${itemCount}</span>
+            <span>Buku ${index + 1} dari ${itemCount}</span>
           </div>
+          ${renderReadLink(item.id)}
         </div>
         <div class="history-card-price">
           <div class="history-price-value">${formatRupiah(item.price)}</div>
@@ -168,8 +154,13 @@ function renderCartGroup(tx) {
 // ---------------------------------------------------------------
 // Render semua riwayat
 // ---------------------------------------------------------------
-function renderHistory() {
-  const history = getPaymentHistory();
+async function renderHistory() {
+  let history = [];
+  try {
+    history = await getPaymentHistory();
+  } catch (error) {
+    console.error("Gagal memuat riwayat:", error);
+  }
 
   if (!history || history.length === 0) {
     historyListEl.innerHTML = `
@@ -187,15 +178,15 @@ function renderHistory() {
   btnClearHistory.style.display = "";
 
   historyListEl.innerHTML = history.map(tx => {
-    const isCartTx = tx.type === "cart" || Array.isArray(tx.items);
+    const isCartTx = tx.items && tx.items.length > 1;
     return isCartTx ? renderCartGroup(tx) : renderSingleCard(tx);
   }).join("");
 }
 
-btnClearHistory.addEventListener("click", () => {
+btnClearHistory.addEventListener("click", async () => {
   if (confirm("Yakin ingin menghapus semua riwayat pembelian?")) {
-    clearPaymentHistory();
-    renderHistory();
+    await clearPaymentHistory();
+    await renderHistory();
   }
 });
 

@@ -163,12 +163,6 @@
 
 .wishlist-card-price { font-size: 1.1rem; font-weight: 700; color: var(--success); }
 
-/* Stock badges */
-.stock-badge { font-size: 0.75rem; font-weight: 600; padding: 0.2rem 0.5rem; border-radius: var(--radius-sm); }
-.stock-badge.in-stock   { background-color: var(--success-bg); color: var(--success); }
-.stock-badge.low-stock  { background-color: var(--warning-bg); color: var(--warning); }
-.stock-badge.out-of-stock { background-color: var(--danger-bg); color: var(--danger); }
-
 .wishlist-card-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;

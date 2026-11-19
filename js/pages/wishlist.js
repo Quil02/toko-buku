@@ -93,8 +93,7 @@ function renderWishlistLoading(count = 6) {
   `).join('');
 }
 
-function renderWishlist() {
-  const items = getWishlist();
+function renderWishlist(items) {
   updateWishlistCounter(items.length);
 
   if (!items || items.length === 0) {
@@ -138,21 +137,31 @@ function renderWishlist() {
   }).join('');
 
   document.querySelectorAll('.btn-remove-wishlist').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', async (e) => {
       e.preventDefault();
       const bookId = btn.getAttribute('data-id');
       if (bookId) {
-        removeFromWishlist(bookId);
-        renderWishlist();
+        btn.disabled = true;
+        await removeFromWishlist(bookId);
+        await loadWishlist();
       }
     });
   });
 }
 
+async function loadWishlist() {
+  try {
+    const items = await getWishlist();
+    renderWishlist(items);
+  } catch (error) {
+    console.error('Gagal memuat wishlist:', error);
+    renderWishlist([]);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initNavbarAuth();
-initMobileNav();
+  initMobileNav();
   renderWishlistLoading();
-  // Data dari localStorage = synchronous, tapi skeleton memberi kesan loading yang natural
-  setTimeout(() => renderWishlist(), 350);
+  loadWishlist();
 });

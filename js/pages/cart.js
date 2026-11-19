@@ -2,16 +2,13 @@ import { initMobileNav } from '../utils/mobileNav.js';
 /**
  * Logika Halaman Keranjang Belanja (Cart)
  * - Guest / tidak login: redirect ke halaman login
- * - User login: bisa lihat cart, hapus item, dan checkout ke halaman checkout
- * - Tidak ada quantity (produk digital, setiap judul = 1 unit)
+ * - User login: lihat cart, ubah jumlah, hapus item, dan checkout
  */
 
 import {
   getCart,
   removeFromCart,
   clearCart,
-  getCartTotal,
-  getCartCount,
 } from '../api/cartApi.js';
 import { formatRupiah } from '../api/paymentApi.js';
 import { getUser, isAuthenticated, clearAuth } from '../utils/authStorage.js';
@@ -24,8 +21,11 @@ if (!isAuthenticated()) {
 // DOM
 const authNavContainer = document.getElementById('authNavContainer');
 const mainNavLinks     = document.getElementById('mainNavLinks');
-const cartCountBadge   = document.getElementById('cartCountBadge');
 const cartBody         = document.getElementById('cartBody');
+
+// State
+let cartData = [];
+let isUpdating = false;
 
 // ---------------------------------------------------------------
 // Navbar Auth
@@ -91,16 +91,21 @@ function renderCartLoading() {
 }
 
 // ---------------------------------------------------------------
+// Helper
+// ---------------------------------------------------------------
+// Buku digital: setiap judul = 1 eksemplar, jadi total = jumlah judul.
+function getTotalPrice() {
+  return cartData.reduce((sum, item) => sum + item.price, 0);
+}
+
+// ---------------------------------------------------------------
 // Render Cart
 // ---------------------------------------------------------------
 function renderCart() {
-  const cart  = getCart();
-  const count = getCartCount();
-  const total = getCartTotal();
+  const titleCount = cartData.length;
+  const total      = getTotalPrice();
 
-  cartCountBadge.textContent = `${count} item`;
-
-  if (!cart.length) {
+  if (titleCount === 0) {
     renderEmptyCart();
     return;
   }
@@ -111,11 +116,11 @@ function renderCart() {
       <!-- Daftar Item -->
       <div class="cart-items-section">
         <div class="cart-items-header">
-          <h2>Item dalam Keranjang (${count})</h2>
+          <h2>Buku di Keranjang</h2>
           <button class="btn-clear-cart" id="btnClearCart">🗑 Kosongkan Keranjang</button>
         </div>
         <div id="cartItemsList">
-          ${cart.map(item => renderCartItem(item)).join('')}
+          ${cartData.map(item => renderCartItem(item)).join('')}
         </div>
       </div>
 
@@ -124,7 +129,7 @@ function renderCart() {
         <div class="cart-summary-card">
           <div class="cart-summary-title">Ringkasan Pesanan</div>
           <div class="cart-summary-row">
-            <span>${count} judul buku</span>
+            <span>Subtotal</span>
             <span>${formatRupiah(total)}</span>
           </div>
           <div class="cart-summary-row">
@@ -144,24 +149,7 @@ function renderCart() {
     </div>
   `;
 
-  document.getElementById('btnClearCart')?.addEventListener('click', () => {
-    if (confirm('Yakin ingin mengosongkan semua item dari keranjang?')) {
-      clearCart();
-      renderCart();
-    }
-  });
-
-  document.getElementById('btnCheckout')?.addEventListener('click', (e) => {
-    const btn = e.currentTarget;
-    btn.disabled = true;
-    btn.innerHTML = `<span class="spinner" style="width:16px;height:16px;border-width:2.5px;"></span> Mempersiapkan...`;
-    sessionStorage.setItem('cart_checkout', JSON.stringify(getCart()));
-    setTimeout(() => {
-      window.location.href = 'checkout.html?source=cart';
-    }, 600);
-  });
-
-  bindRemoveEvents();
+  bindCartEvents();
 }
 
 function renderCartItem(item) {
@@ -175,16 +163,17 @@ function renderCartItem(item) {
         src="${item.thumbnail}"
         alt="${item.title}"
         class="cart-item-cover"
+        loading="lazy"
         onerror="this.src='https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&auto=format&fit=crop&q=80'"
       />
       <div class="cart-item-info">
         <div class="cart-item-category">${item.category || 'Umum'}</div>
         <div class="cart-item-title" title="${item.title}">${item.title}</div>
         <div class="cart-item-author">${authors}</div>
-        <div class="cart-item-price-unit" style="font-weight:700; color:var(--success); margin-top:0.3rem;">${formatRupiah(item.price)}</div>
       </div>
       <div class="cart-item-controls">
-        <button class="btn-remove-cart" data-id="${item.id}">Hapus</button>
+        <div class="cart-item-subtotal">${formatRupiah(item.price)}</div>
+        <button class="btn-remove-cart" data-action="remove" data-id="${item.id}">Hapus</button>
       </div>
     </div>
   `;
@@ -201,13 +190,57 @@ function renderEmptyCart() {
   `;
 }
 
-function bindRemoveEvents() {
-  document.querySelectorAll('.btn-remove-cart').forEach(btn => {
-    btn.addEventListener('click', () => {
-      removeFromCart(btn.dataset.id);
-      renderCart();
-    });
+// ---------------------------------------------------------------
+// Event handlers
+// ---------------------------------------------------------------
+function bindCartEvents() {
+  document.getElementById('btnClearCart')?.addEventListener('click', async () => {
+    if (!confirm('Yakin ingin mengosongkan semua item dari keranjang?')) return;
+    await clearCart();
+    await loadCart();
   });
+
+  document.getElementById('btnCheckout')?.addEventListener('click', (e) => {
+    if (!cartData.length) return;
+
+    const btn = e.currentTarget;
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner" style="width:16px;height:16px;border-width:2.5px;"></span> Mempersiapkan...`;
+
+    sessionStorage.setItem('cart_checkout', JSON.stringify(cartData));
+    window.location.href = 'checkout.html?source=cart';
+  });
+
+  document.getElementById('cartItemsList')?.addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-action="remove"]');
+    if (!btn || isUpdating) return;
+
+    const bookId = btn.dataset.id;
+    if (!bookId) return;
+
+    isUpdating = true;
+    btn.disabled = true;
+
+    try {
+      await removeFromCart(bookId);
+      await loadCart();
+    } finally {
+      isUpdating = false;
+    }
+  });
+}
+
+// ---------------------------------------------------------------
+// Load dari API
+// ---------------------------------------------------------------
+async function loadCart() {
+  try {
+    cartData = await getCart();
+  } catch (error) {
+    console.error('Gagal memuat keranjang:', error);
+    cartData = [];
+  }
+  renderCart();
 }
 
 // ---------------------------------------------------------------
@@ -216,5 +249,4 @@ function bindRemoveEvents() {
 initNavbarAuth();
 initMobileNav();
 renderCartLoading();
-// Simulasi mikro-delay agar skeleton terasa natural (data dari localStorage = sync)
-setTimeout(() => renderCart(), 350);
+loadCart();

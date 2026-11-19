@@ -21,6 +21,34 @@ app.add_middleware(
 
 DB_NAME = "tokobuku.db"
 
+# Harga buku dibuat deterministik dari ID (sama dengan logika di js/api/bookApi.js),
+# sehingga server bisa memvalidasi harga yang dikirim client.
+PRICE_MIN = 7000
+PRICE_MAX = 20000
+PRICE_STEP = 1000
+
+
+
+def generate_price_from_id(book_id: str) -> int:
+    """Hitung harga dari ID buku, identik dengan generatePriceFromId() di frontend."""
+    hash_value = 0
+    for char in book_id or "":
+        hash_value = (hash_value << 5) - hash_value + ord(char)
+        # Tiru konversi int32 (hash |= 0) di JavaScript
+        hash_value = ((hash_value + 0x80000000) % 0x100000000) - 0x80000000
+
+    range_steps = (PRICE_MAX - PRICE_MIN) // PRICE_STEP  # 13
+    return PRICE_MIN + (abs(hash_value) % (range_steps + 1)) * PRICE_STEP
+
+
+def ensure_column(cursor, table: str, column: str, definition: str) -> None:
+    """Tambahkan kolom ke tabel lama tanpa menghapus data."""
+    cursor.execute(f"PRAGMA table_info({table})")
+    existing = {row[1] for row in cursor.fetchall()}
+    if column not in existing:
+        cursor.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+
+
 # Database initialization
 def init_db():
     conn = sqlite3.connect(DB_NAME)
@@ -49,6 +77,7 @@ def init_db():
             thumbnail TEXT,
             category TEXT,
             addedAt TEXT NOT NULL,
+            quantity INTEGER NOT NULL DEFAULT 1,
             FOREIGN KEY (user_id) REFERENCES users(id)
         )
     ''')
@@ -78,11 +107,23 @@ def init_db():
             items TEXT NOT NULL,
             total REAL NOT NULL,
             paymentMethod TEXT NOT NULL,
+            buyerName TEXT,
+            buyerEmail TEXT,
+            paymentDetail TEXT,
             createdAt TEXT NOT NULL,
             FOREIGN KEY (user_id) REFERENCES users(id)
         )
     ''')
     
+    # Migrasi untuk database lama
+    ensure_column(cursor, "cart", "quantity", "INTEGER NOT NULL DEFAULT 1")
+    ensure_column(cursor, "transactions", "buyerName", "TEXT")
+    ensure_column(cursor, "transactions", "buyerEmail", "TEXT")
+    ensure_column(cursor, "transactions", "paymentDetail", "TEXT")
+
+    # Buku digital hanya butuh 1 eksemplar per judul, jadi quantity lama direset.
+    cursor.execute("UPDATE cart SET quantity = 1 WHERE quantity IS NULL OR quantity <> 1")
+
     conn.commit()
     conn.close()
 
@@ -110,17 +151,30 @@ def get_user_from_token(token: str):
     if not token:
         return None
     try:
-        parts = token.replace("Bearer ", "").split("_")
-        if len(parts) >= 2:
-            user_id = parts[1]
-            conn = sqlite3.connect(DB_NAME)
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
-            user = cursor.fetchone()
-            conn.close()
-            if user:
-                return {"id": user[0], "fullName": user[1], "email": user[2]}
-    except:
+        raw = token.strip()
+        if raw.lower().startswith("bearer "):
+            raw = raw[7:].strip()
+        if not raw.startswith("token_"):
+            return None
+
+        # Format token: token_<user_id>_<unix_timestamp>
+        # user_id sendiri mengandung underscore (user_<timestamp>_<random>),
+        # jadi timestamp diambil dari bagian paling akhir.
+        payload = raw[len("token_"):]
+        if "_" not in payload:
+            return None
+        user_id = payload.rsplit("_", 1)[0]
+        if not user_id:
+            return None
+
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+        user = cursor.fetchone()
+        conn.close()
+        if user:
+            return {"id": user[0], "fullName": user[1], "email": user[2]}
+    except Exception:
         pass
     return None
 
@@ -143,6 +197,12 @@ async def register(data: dict):
     
     if not fullName or not email or not password:
         raise HTTPException(status_code=400, detail="Semua data wajib diisi!")
+    
+    if "@" not in email or "." not in email.split("@")[-1]:
+        raise HTTPException(status_code=400, detail="Format email tidak valid!")
+    
+    if len(password) < 6:
+        raise HTTPException(status_code=400, detail="Kata sandi minimal 6 karakter!")
     
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
@@ -219,20 +279,29 @@ async def get_cart(authorization: Optional[str] = Header(None)):
     
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM cart WHERE user_id = ?", (user["id"],))
+    cursor.execute(
+        "SELECT book_id, title, authors, price, thumbnail, category, addedAt "
+        "FROM cart WHERE user_id = ? ORDER BY addedAt ASC",
+        (user["id"],)
+    )
     items = cursor.fetchall()
     conn.close()
     
     result = []
     for item in items:
+        try:
+            authors = json.loads(item[2])
+        except (TypeError, ValueError):
+            authors = [item[2]] if item[2] else ["Anonim"]
+        
         result.append({
-            "id": item[2],  # book_id
-            "title": item[3],
-            "authors": json.loads(item[4]),
-            "price": item[5],
-            "thumbnail": item[6],
-            "category": item[7],
-            "addedAt": item[8]
+            "id": item[0],  # book_id
+            "title": item[1],
+            "authors": authors,
+            "price": item[3],
+            "thumbnail": item[4],
+            "category": item[5],
+            "addedAt": item[6],
         })
     
     return result
@@ -243,35 +312,57 @@ async def add_to_cart(data: dict, authorization: Optional[str] = Header(None)):
     if not user:
         raise HTTPException(status_code=401, detail="Unauthorized")
     
-    book_id = data.get("id")
+    book_id = str(data.get("id") or "").strip()
+    if not book_id:
+        raise HTTPException(status_code=400, detail="ID buku wajib diisi!")
+    
+    authors = data.get("authors") or ["Anonim"]
+    if not isinstance(authors, list):
+        authors = [str(authors)]
     
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     
-    # Check if exists
-    cursor.execute("SELECT * FROM cart WHERE user_id = ? AND book_id = ?", (user["id"], book_id))
+    # Harga tidak dipercaya dari client; dihitung ulang di server.
+    price = generate_price_from_id(book_id)
+    
+    # Buku digital: satu judul hanya boleh ada sekali di keranjang.
+    cursor.execute(
+        "SELECT book_id FROM cart WHERE user_id = ? AND book_id = ?",
+        (user["id"], book_id)
+    )
     if cursor.fetchone():
         conn.close()
-        return {"success": False, "message": "Item sudah ada di cart"}
+        return {
+            "success": True,
+            "alreadyInCart": True,
+            "message": "Buku ini sudah ada di keranjang",
+            "price": price,
+        }
     
-    # Add to cart
     cursor.execute(
-        "INSERT INTO cart (user_id, book_id, title, authors, price, thumbnail, category, addedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO cart (user_id, book_id, title, authors, price, thumbnail, category, addedAt, quantity) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)",
         (
             user["id"],
             book_id,
-            data.get("title", "Tanpa Judul"),
-            json.dumps(data.get("authors", ["Anonim"])),
-            data.get("price", 0),
+            str(data.get("title") or "Tanpa Judul"),
+            json.dumps(authors),
+            price,
             data.get("thumbnail"),
             data.get("category"),
-            get_timestamp()
+            get_timestamp(),
         )
     )
     conn.commit()
     conn.close()
     
-    return {"success": True, "message": "Item berhasil ditambahkan ke cart"}
+    return {
+        "success": True,
+        "alreadyInCart": False,
+        "message": "Buku berhasil ditambahkan ke keranjang",
+        "price": price,
+    }
 
 @app.delete("/api/cart/{book_id}")
 async def remove_from_cart(book_id: str, authorization: Optional[str] = Header(None)):
@@ -327,6 +418,7 @@ async def get_cart_total(authorization: Optional[str] = Header(None)):
     items = cursor.fetchall()
     conn.close()
     
+    # Buku digital: setiap judul dihitung 1 eksemplar.
     total = sum(item[0] for item in items)
     count = len(items)
     
@@ -342,21 +434,24 @@ async def get_wishlist(authorization: Optional[str] = Header(None)):
     
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM wishlist WHERE user_id = ?", (user["id"],))
+    cursor.execute(
+        "SELECT book_id, title, authors, price, thumbnail, category, addedAt "
+        "FROM wishlist WHERE user_id = ? ORDER BY addedAt ASC",
+        (user["id"],)
+    )
     items = cursor.fetchall()
     conn.close()
     
     result = []
     for item in items:
         result.append({
-            "id": item[2],  # book_id
-            "title": item[3],
-            "authors": json.loads(item[4]),
-            "price": item[5],
-            "stock": item[6],
-            "thumbnail": item[7],
-            "category": item[8],
-            "addedAt": item[9]
+            "id": item[0],  # book_id
+            "title": item[1],
+            "authors": json.loads(item[2]),
+            "price": item[3],
+            "thumbnail": item[4],
+            "category": item[5],
+            "addedAt": item[6]
         })
     
     return result
@@ -380,14 +475,13 @@ async def add_to_wishlist(data: dict, authorization: Optional[str] = Header(None
     
     # Add to wishlist
     cursor.execute(
-        "INSERT INTO wishlist (user_id, book_id, title, authors, price, stock, thumbnail, category, addedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO wishlist (user_id, book_id, title, authors, price, thumbnail, category, addedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         (
             user["id"],
             book_id,
             data.get("title", "Tanpa Judul"),
             json.dumps(data.get("authors", ["Anonim"])),
             data.get("price", 0),
-            data.get("stock", 10),
             data.get("thumbnail"),
             data.get("category"),
             get_timestamp()
@@ -428,37 +522,106 @@ async def check_in_wishlist(book_id: str, authorization: Optional[str] = Header(
 
 # ==================== TRANSACTION ENDPOINTS ====================
 
+def normalize_transaction_items(raw_items) -> list:
+    """Validasi item transaksi dan hitung harga/total di server."""
+    merged = {}
+
+    for item in raw_items or []:
+        if not isinstance(item, dict):
+            continue
+
+        book_id = str(item.get("id") or "").strip()
+        if not book_id:
+            continue
+
+        # Buku digital: setiap judul dihitung 1 eksemplar, duplikat diabaikan.
+        if book_id in merged:
+            continue
+
+        authors = item.get("authors")
+        if not isinstance(authors, list):
+            authors = [item.get("author") or "Anonim"]
+        authors = [str(author) for author in authors] or ["Anonim"]
+
+        # Harga selalu dihitung ulang di server, bukan dari client.
+        price = generate_price_from_id(book_id)
+
+        merged[book_id] = {
+            "id": book_id,
+            "title": str(item.get("title") or "Tanpa Judul"),
+            "author": authors[0],
+            "authors": authors,
+            "thumbnail": item.get("thumbnail"),
+            "price": price,
+            "quantity": 1,
+            "subtotal": price,
+        }
+
+    return list(merged.values())
+
+
 @app.post("/api/transactions")
 async def create_transaction(data: dict, authorization: Optional[str] = Header(None)):
     user = get_user_from_token(authorization)
     if not user:
         raise HTTPException(status_code=401, detail="Unauthorized")
     
+    payment_method = str(data.get("paymentMethod") or "").strip()
+    if not payment_method:
+        raise HTTPException(status_code=400, detail="Metode pembayaran wajib dipilih!")
+    
+    items = normalize_transaction_items(data.get("items"))
+    if not items:
+        raise HTTPException(status_code=400, detail="Tidak ada item yang bisa diproses!")
+    
+    total = sum(item["subtotal"] for item in items)
     transaction_id = generate_payment_id()
+    created_at = get_timestamp()
+    
+    buyer = data.get("buyer") or {}
+    buyer_name = str(buyer.get("name") or user.get("fullName") or "")
+    buyer_email = str(buyer.get("email") or user.get("email") or "")
+    payment_detail = data.get("paymentDetail")
+    payment_detail_json = (
+        json.dumps(payment_detail, ensure_ascii=False)
+        if isinstance(payment_detail, dict) else None
+    )
     
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     cursor.execute(
-        "INSERT INTO transactions (id, user_id, items, total, paymentMethod, createdAt) VALUES (?, ?, ?, ?, ?, ?)",
+        "INSERT INTO transactions "
+        "(id, user_id, items, total, paymentMethod, buyerName, buyerEmail, paymentDetail, createdAt) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (
             transaction_id,
             user["id"],
-            json.dumps(data.get("items", [])),
-            data.get("total", 0),
-            data.get("paymentMethod", ""),
-            get_timestamp()
+            json.dumps(items, ensure_ascii=False),
+            total,
+            payment_method,
+            buyer_name,
+            buyer_email,
+            payment_detail_json,
+            created_at,
         )
     )
+    
+    # Transaksi dari keranjang sekaligus mengosongkan keranjang.
+    if data.get("fromCart"):
+        cursor.execute("DELETE FROM cart WHERE user_id = ?", (user["id"],))
+    
     conn.commit()
     conn.close()
     
     return {
         "id": transaction_id,
         "user_id": user["id"],
-        "items": data.get("items", []),
-        "total": data.get("total", 0),
-        "paymentMethod": data.get("paymentMethod", ""),
-        "createdAt": get_timestamp()
+        "items": items,
+        "total": total,
+        "paymentMethod": payment_method,
+        "buyer": {"name": buyer_name, "email": buyer_email},
+        "paymentDetail": payment_detail,
+        "createdAt": created_at,
     }
 
 @app.get("/api/transactions")
@@ -469,19 +632,41 @@ async def get_transactions(authorization: Optional[str] = Header(None)):
     
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM transactions WHERE user_id = ? ORDER BY createdAt DESC", (user["id"],))
+    cursor.execute(
+        "SELECT id, user_id, items, total, paymentMethod, buyerName, buyerEmail, paymentDetail, createdAt "
+        "FROM transactions WHERE user_id = ? ORDER BY createdAt DESC",
+        (user["id"],)
+    )
     transactions = cursor.fetchall()
     conn.close()
     
     result = []
     for tx in transactions:
+        try:
+            items = json.loads(tx[2])
+        except (TypeError, ValueError):
+            items = []
+        
+        # Data lama belum punya quantity/author/subtotal.
+        for item in items:
+            item.setdefault("quantity", 1)
+            item.setdefault("author", (item.get("authors") or ["Anonim"])[0])
+            item.setdefault("subtotal", item.get("price", 0) * item["quantity"])
+        
+        try:
+            payment_detail = json.loads(tx[7]) if tx[7] else None
+        except (TypeError, ValueError):
+            payment_detail = None
+        
         result.append({
             "id": tx[0],
             "user_id": tx[1],
-            "items": json.loads(tx[2]),
+            "items": items,
             "total": tx[3],
             "paymentMethod": tx[4],
-            "createdAt": tx[5]
+            "buyer": {"name": tx[5] or "", "email": tx[6] or ""},
+            "paymentDetail": payment_detail,
+            "createdAt": tx[8],
         })
     
     return result

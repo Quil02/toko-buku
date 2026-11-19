@@ -22,13 +22,35 @@ function generatePriceFromId(id = '') {
 }
 
 /**
- * Menghasilkan halaman acak untuk variasi hasil setiap refresh
- * @param {number} min 
- * @param {number} max 
- * @returns {number}
+ * Nama bahasa yang ramah dibaca dari kode Open Library (mis. 'eng' -> 'Inggris')
+ * @param {Array|string} source
+ * @returns {string}
  */
-function getRandomPage(min = 1, max = 10) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+const LANGUAGE_NAMES = {
+  eng: 'Inggris',
+  ind: 'Indonesia',
+  fre: 'Prancis',
+  ger: 'Jerman',
+  spa: 'Spanyol',
+  ita: 'Italia',
+  jpn: 'Jepang',
+  kor: 'Korea',
+  zho: 'Mandarin',
+  ara: 'Arab',
+  rus: 'Rusia',
+  por: 'Portugis',
+};
+
+function normalizeLanguage(source) {
+  let code = '';
+  if (Array.isArray(source) && source.length > 0) {
+    code = String(source[0]);
+  } else if (typeof source === 'string') {
+    code = source;
+  }
+  code = code.replace(/^.*\//, '').toLowerCase();
+  if (!code) return '-';
+  return LANGUAGE_NAMES[code] || code.toUpperCase();
 }
 
 /**
@@ -129,7 +151,7 @@ export function normalizeBookData(doc) {
     category: categories[0] || 'Umum',
     pageCount: doc.number_of_pages_median || 0,
     isbn,
-    language: Array.isArray(doc.language) && doc.language.length > 0 ? doc.language[0].toUpperCase() : 'ID',
+    language: normalizeLanguage(doc.language),
     rating,
     ratingsCount,
     price,
@@ -198,7 +220,7 @@ export function normalizeWorkDetail(item, workId, extraDoc = null) {
     categories,
     category: categories[0] || 'Umum',
     pageCount: extraDoc?.number_of_pages_median || 0,
-    language: 'ID',
+    language: normalizeLanguage(item.languages || extraDoc?.language),
     rating,
     ratingsCount,
     isbn: extractIsbn(extraDoc?.isbn || item.isbn || item.isbn_13 || item.isbn_10, id),
@@ -233,19 +255,19 @@ async function fetchBySubject({ subject, perPage, page }) {
   return data.docs.map(normalizeBookData).filter(b => b && b.hasRealCover);
 }
 
-export async function fetchBooks({ query = '', category = '', maxResults = 24, page = null } = {}) {
+export async function fetchBooks({ query = '', category = '', maxResults = 24, page = 1 } = {}) {
   try {
-    // Mode "Semua Kategori" — tidak ada query pengguna & tidak ada kategori dipilih:
-    // fetch dari setiap kategori secara paralel agar hasil merata
+    // Mode "Semua Kategori" — tidak ada query pengguna & tidak ada kategori dipilih.
+    // Halaman tetap (bukan acak) agar isi katalog konsisten setiap refresh.
     if (!query && !category) {
       const perCategory = Math.ceil(maxResults / ALL_CATEGORIES.length);
       const results = await Promise.allSettled(
         ALL_CATEGORIES.map(subject =>
-          fetchBySubject({ subject, perPage: perCategory, page: getRandomPage(1, 5) })
+          fetchBySubject({ subject, perPage: perCategory, page: 1 })
         )
       );
 
-      // Gabungkan, hapus duplikat berdasarkan id, lalu acak urutan
+      // Gabungkan, hapus duplikat berdasarkan id, lalu urutkan stabil.
       const seen = new Set();
       const merged = [];
       for (const result of results) {
@@ -258,14 +280,16 @@ export async function fetchBooks({ query = '', category = '', maxResults = 24, p
           }
         }
       }
-      return merged.sort(() => Math.random() - 0.5).slice(0, maxResults);
+      return merged
+        .sort((a, b) => a.title.localeCompare(b.title))
+        .slice(0, maxResults);
     }
 
     // Mode kategori spesifik atau pencarian — fetch normal
     const searchParam = query.trim() || category;
-    const randomizedPage = page !== null ? page : 1;
+    const requestedPage = page || 1;
 
-    let url = `${OPEN_LIBRARY_BASE_URL}/search.json?q=${encodeURIComponent(searchParam)}&limit=${maxResults}&page=${randomizedPage}`;
+    let url = `${OPEN_LIBRARY_BASE_URL}/search.json?q=${encodeURIComponent(searchParam)}&limit=${maxResults}&page=${requestedPage}`;
 
     if (category) {
       url += `&subject=${encodeURIComponent(category)}`;
@@ -282,7 +306,7 @@ export async function fetchBooks({ query = '', category = '', maxResults = 24, p
     }
 
     const books = data.docs.map(normalizeBookData).filter(b => b && b.hasRealCover);
-    return books.sort(() => Math.random() - 0.5);
+    return books;
   } catch (error) {
     console.error('Error fetching books from Open Library:', error);
     throw error;
