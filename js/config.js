@@ -1,5 +1,9 @@
 export const CONFIG = {
-  API_BASE_URL: "http://localhost:8000",
+  // Kosong = API mengikuti alamat halaman (origin). Jadi aplikasi tetap
+  // jalan saat dibuka lewat localhost, tunnel, atau alamat lain — tidak
+  // lagi terpaku ke http://localhost:8000 (yang di HP artinya HP itu
+  // sendiri, bukan server).
+  API_BASE_URL: "",
   GOOGLE_BOOK_API_BASE_URL: "https://www.googleapis.com/books/v1/volumes",
   TOKEN_KEY: "bookstore_auth_token",
   USER_KEY: "bookstore_user_data",
