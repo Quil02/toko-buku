@@ -3,12 +3,24 @@ import {
   generatePaymentId,
   formatRupiah,
   savePayment,
-  PAYMENT_METHOD_LABELS,
+  getPaymentMethods,
+  getPaymentMethodLabel,
 } from "../api/paymentApi.js";
 import { getUser, isAuthenticated, isGuest, clearAuth, redirectIfAdmin } from "../utils/authStorage.js";
 
 // Admin tidak boleh di halaman ini
 redirectIfAdmin();
+
+// Escape teks sebelum dimasukkan ke innerHTML (cegah XSS).
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[char]);
+}
 
 // ---- Elemen DOM ----
 const orderBookInfoEl    = document.getElementById("orderBookInfo");
@@ -24,25 +36,18 @@ const modalTotal         = document.getElementById("modalTotal");
 const buyerNameEl        = document.getElementById("buyerName");
 const buyerEmailEl       = document.getElementById("buyerEmail");
 
-// Instruksi pembayaran
+// Metode pembayaran (dirender dari katalog backend)
+const paymentMethodsEl   = document.getElementById("paymentMethods");
 const paymentDetailCard  = document.getElementById("paymentDetailCard");
-const bankFields         = document.getElementById("bankFields");
-const ewalletFields      = document.getElementById("ewalletFields");
-const destinationName    = document.getElementById("paymentDestinationName");
-const destinationNumber  = document.getElementById("paymentDestinationNumber");
-const destinationOwner   = document.getElementById("paymentDestinationOwner");
-const ewalletName        = document.getElementById("ewalletDestinationName");
-const ewalletNumber      = document.getElementById("ewalletDestinationNumber");
+const paymentDetailBody  = document.getElementById("paymentDetailBody");
 const paymentAmountEl    = document.getElementById("paymentAmount");
 
-// Tujuan pembayaran toko (disimulasikan untuk tugas)
-const PAYMENT_DESTINATIONS = {
-  bca:     { type: "bank",    name: "Bank BCA",   number: "1234567890",   owner: "TokoBuku Digital" },
-  mandiri: { type: "bank",    name: "Bank Mandiri", number: "1370012345678", owner: "TokoBuku Digital" },
-  gopay:   { type: "ewallet", name: "GoPay",      number: "0812-3456-7890" },
-  ovo:     { type: "ewallet", name: "OVO",        number: "0812-3456-7890" },
-  dana:    { type: "ewallet", name: "DANA",       number: "0812-3456-7890" },
-};
+// Urutan grup seperti di toko buku online (Gramedia): QRIS dulu,
+// lalu Virtual Account, E-Wallet, terakhir Kartu.
+const GROUP_ORDER = ["QRIS", "Virtual Account", "E-Wallet", "Kartu"];
+
+// Katalog yang sedang dipakai (dari backend, atau cadangan lokal).
+let paymentMethodsById = new Map();
 
 // ---- Deteksi sumber: cart atau buku tunggal ----
 const params     = new URLSearchParams(window.location.search);
@@ -165,11 +170,87 @@ function hideAlert() {
   checkoutAlert.classList.add("hidden");
 }
 
-// ---- Tampilkan instruksi pembayaran sesuai metode ----
-function updatePaymentDetailForm(method) {
-  const destination = PAYMENT_DESTINATIONS[method];
+// ---- Simbol bank / wallet ----
+// Logo digambar sebagai lencana warna khas tiap merek (bukan file gambar),
+// supaya tetap tampil saat aplikasi dijalankan offline tanpa internet.
+function brandBadgeHTML(method) {
+  if (method.brand === "card") {
+    return `<span class="brand-row">
+      <span class="brand-badge brand-visa">VISA</span>
+      <span class="brand-badge brand-mc"><span class="mc-circle mc-red"></span><span class="mc-circle mc-yellow"></span></span>
+    </span>`;
+  }
+  return `<span class="brand-badge brand-${escapeHtml(method.brand)}">${escapeHtml(method.short || method.label)}</span>`;
+}
 
-  if (!destination) {
+// ---- Render pilihan metode pembayaran (dikelompokkan) ----
+function renderPaymentMethods(methods) {
+  paymentMethodsById = new Map(methods.map((method) => [method.id, method]));
+
+  const groups = new Map();
+  for (const method of methods) {
+    if (!groups.has(method.group)) groups.set(method.group, []);
+    groups.get(method.group).push(method);
+  }
+
+  const orderedGroups = [...groups.entries()].sort(([a], [b]) => {
+    const ia = GROUP_ORDER.indexOf(a);
+    const ib = GROUP_ORDER.indexOf(b);
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+  });
+
+  paymentMethodsEl.innerHTML = orderedGroups.map(([group, items]) => `
+    <div class="payment-group-title">${escapeHtml(group)}</div>
+    ${items.map((method) => `
+      <label class="payment-option">
+        <input type="radio" name="paymentMethod" value="${escapeHtml(method.id)}" />
+        <div class="payment-option-content">
+          ${brandBadgeHTML(method)}
+          <div>
+            <div class="payment-name">${escapeHtml(method.label)}</div>
+            <div class="payment-desc">${escapeHtml(method.description || "")}</div>
+          </div>
+        </div>
+      </label>
+    `).join("")}
+  `).join("");
+}
+
+// ---- Kode QR palsu untuk simulasi ----
+// Pola tetap yang diturunkan dari ID pesanan — BUKAN kode QR asli dan
+// tidak bisa dipakai bayar. Hanya hiasan supaya tampilan mirip toko asli.
+function pseudoQrSvg(seed) {
+  const size = 25;
+  let hash = 0;
+  for (const ch of String(seed)) hash = ((hash * 31) + ch.charCodeAt(0)) >>> 0;
+  const rand = () => {
+    hash = (hash * 1103515245 + 12345) >>> 0;
+    return hash / 4294967296;
+  };
+  const inFinderZone = (x, y) => (x < 8 && y < 8) || (x >= size - 8 && y < 8) || (x < 8 && y >= size - 8);
+
+  let cells = `<rect x="0" y="0" width="${size}" height="${size}" fill="#ffffff" />`;
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      if (inFinderZone(x, y)) continue;
+      if (rand() < 0.45) cells += `<rect x="${x}" y="${y}" width="1" height="1" />`;
+    }
+  }
+  // Tiga kotak penanda sudut khas QR.
+  const finder = (ox, oy) =>
+    `<rect x="${ox}" y="${oy}" width="7" height="7" />` +
+    `<rect x="${ox + 1}" y="${oy + 1}" width="5" height="5" fill="#ffffff" />` +
+    `<rect x="${ox + 2}" y="${oy + 2}" width="3" height="3" />`;
+  cells += finder(0, 0) + finder(size - 7, 0) + finder(0, size - 7);
+
+  return `<svg viewBox="0 0 ${size} ${size}" role="img" aria-label="Kode QR simulasi">${cells}</svg>`;
+}
+
+// ---- Tampilkan instruksi pembayaran sesuai metode ----
+function updatePaymentDetailForm(methodId) {
+  const method = paymentMethodsById.get(methodId);
+
+  if (!method) {
     paymentDetailCard.style.display = "none";
     return;
   }
@@ -177,26 +258,90 @@ function updatePaymentDetailForm(method) {
   paymentDetailCard.style.display = "";
   paymentAmountEl.value = formatRupiah(getTotal());
 
-  if (destination.type === "bank") {
-    bankFields.style.display    = "";
-    ewalletFields.style.display = "none";
-    destinationName.value   = destination.name;
-    destinationNumber.value = destination.number;
-    destinationOwner.value  = destination.owner;
+  const destination = method.destination || {};
+  const expiryHint = method.expiryMinutes
+    ? `<p class="payment-detail-hint">Bayar dalam ${method.expiryMinutes} menit setelah checkout, atau pesanan batal otomatis.</p>`
+    : "";
+
+  if (method.kind === "va") {
+    paymentDetailBody.innerHTML = `
+      <div class="payment-detail-info">
+        <span class="payment-detail-badge">Virtual Account</span>
+        <p class="payment-detail-hint">Transfer sesuai total pesanan ke nomor Virtual Account berikut.</p>
+      </div>
+      <div class="form-group">
+        <label>Bank Tujuan</label>
+        <input type="text" value="${escapeHtml(destination.name || method.label)}" readonly />
+      </div>
+      <div class="form-group">
+        <label>Nomor Virtual Account</label>
+        <input type="text" value="${escapeHtml(destination.number || "-")}" readonly />
+      </div>
+      <div class="form-group">
+        <label>Atas Nama</label>
+        <input type="text" value="${escapeHtml(destination.owner || "-")}" readonly />
+      </div>
+      ${expiryHint}
+    `;
+  } else if (method.kind === "ewallet") {
+    paymentDetailBody.innerHTML = `
+      <div class="payment-detail-info">
+        <span class="payment-detail-badge ewallet">📱 E-Wallet</span>
+        <p class="payment-detail-hint">Kirim pembayaran ke nomor e-wallet toko berikut.</p>
+      </div>
+      <div class="form-group">
+        <label>E-Wallet Tujuan</label>
+        <input type="text" value="${escapeHtml(destination.name || method.label)}" readonly />
+      </div>
+      <div class="form-group">
+        <label>Nomor Tujuan</label>
+        <input type="text" value="${escapeHtml(destination.number || "-")}" readonly />
+      </div>
+      ${expiryHint}
+    `;
+  } else if (method.kind === "qris") {
+    paymentDetailBody.innerHTML = `
+      <div class="payment-detail-info">
+        <span class="payment-detail-badge qris">QRIS</span>
+        <p class="payment-detail-hint">Scan dengan GoPay, OVO, DANA, atau m-banking apa pun.</p>
+      </div>
+      <div class="qris-box">
+        ${pseudoQrSvg(currentPaymentId)}
+        <div class="qris-caption">Kode QR simulasi — bukan kode bayar asli</div>
+      </div>
+      ${expiryHint}
+    `;
+  } else if (method.kind === "card") {
+    paymentDetailBody.innerHTML = `
+      <div class="payment-detail-info">
+        <span class="payment-detail-badge">Kartu Kredit / Debit</span>
+        <p class="payment-detail-hint">Visa / Mastercard. Pembayaran kartu disimulasikan.</p>
+      </div>
+      <div class="form-group">
+        <span class="brand-row">
+          <span class="brand-badge brand-visa">VISA</span>
+          <span class="brand-badge brand-mc"><span class="mc-circle mc-red"></span><span class="mc-circle mc-yellow"></span></span>
+        </span>
+      </div>
+      <p class="payment-detail-hint">Jangan masukkan nomor kartu asli — aplikasi ini tidak memproses pembayaran sungguhan.</p>
+    `;
   } else {
-    bankFields.style.display    = "none";
-    ewalletFields.style.display = "";
-    ewalletName.value   = destination.name;
-    ewalletNumber.value = destination.number;
+    paymentDetailBody.innerHTML = "";
   }
 }
 
-// Listener perubahan metode pembayaran
-document.querySelectorAll('input[name="paymentMethod"]').forEach((radio) => {
-  radio.addEventListener("change", (e) => {
+// Listener perubahan metode pembayaran (delegasi: opsi dirender dinamis)
+paymentMethodsEl.addEventListener("change", (e) => {
+  if (e.target && e.target.name === "paymentMethod") {
     updatePaymentDetailForm(e.target.value);
-  });
+  }
 });
+
+// Muat katalog dari backend lalu render pilihannya.
+async function initPaymentMethods() {
+  const methods = await getPaymentMethods();
+  renderPaymentMethods(methods);
+}
 
 // ---- Validasi form ----
 function validateForm() {
@@ -284,7 +429,7 @@ btnPay.addEventListener("click", async () => {
       const modalQtyRow = document.getElementById("modalQtyRow");
       if (modalQtyRow) modalQtyRow.style.display = "none";
     }
-    modalPaymentMethod.textContent = PAYMENT_METHOD_LABELS[formData.method] || formData.method;
+    modalPaymentMethod.textContent = getPaymentMethodLabel(formData.method);
     modalTotal.textContent = formatRupiah(finalTotal);
 
     successModal.classList.remove("hidden");
@@ -345,5 +490,6 @@ if (!isCartMode && !bookData.id) {
 updateNavbar();
 renderOrderSummary();
 prefillUserData();
+initPaymentMethods();
 
 initMobileNav();

@@ -42,10 +42,23 @@
 
       <!-- Book Detail Container -->
       <div id="bookDetailWrapper" class="book-detail-wrapper">
-        <div class="catalog-state">
-          <div class="catalog-state-icon">🔄</div>
-          <h3 class="catalog-state-title">Memuat Detail Buku...</h3>
-          <p class="catalog-state-desc">Mengambil informasi buku dari Google Books API.</p>
+        <div class="book-detail-skeleton" aria-hidden="true">
+          <div class="skeleton sk-cover-wrap"></div>
+          <div class="sk-info">
+            <div class="skeleton sk-badge"></div>
+            <div class="skeleton sk-title"></div>
+            <div class="skeleton sk-title-2"></div>
+            <div class="skeleton sk-author"></div>
+            <div class="skeleton sk-price"></div>
+            <div class="skeleton sk-desc"></div>
+            <div class="skeleton sk-desc-2"></div>
+            <div class="skeleton sk-desc-3"></div>
+            <div class="sk-actions">
+              <div class="skeleton sk-action-btn"></div>
+              <div class="skeleton sk-action-btn"></div>
+              <div class="skeleton sk-action-btn"></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -54,7 +67,7 @@
   <!-- Footer -->
   <footer class="footer">
     <div class="container footer-bottom">
-      <p>&copy; 2025 TokoBuku Online. Menggunakan data Google Books API.</p>
+      <p>&copy; 2025 TokoBuku Online. Menggunakan data Open Library.</p>
     </div>
   </footer>
 

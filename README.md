@@ -387,6 +387,7 @@ Authorization: Bearer <token>
 
 | Method | Endpoint | Keterangan |
 |--------|----------|------------|
+| `GET` | `/api/payment-methods` | Katalog metode pembayaran (QRIS, Virtual Account, E-Wallet, Kartu) |
 | `POST` | `/api/transactions` | Buat transaksi baru |
 | `GET` | `/api/transactions` | Riwayat transaksi |
 | `GET` | `/api/transactions/check/{book_id}` | Cek buku sudah dibeli |
@@ -398,7 +399,7 @@ Authorization: Bearer <token>
   "items": [
     {"id": "OL45804W", "title": "Judul", "authors": ["Penulis"]}
   ],
-  "paymentMethod": "bca",
+  "paymentMethod": "qris",
   "buyer": {"name": "Nama", "email": "email@mail.com"},
   "fromCart": true
 }
