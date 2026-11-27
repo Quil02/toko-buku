@@ -6,6 +6,17 @@ import { getWishlist, removeFromWishlist } from '../api/wishlistApi.js';
 import { isPurchased } from '../api/paymentApi.js';
 import { isAuthenticated, isGuest, getUser, clearAuth, redirectIfAdmin } from '../utils/authStorage.js';
 
+// Escape teks sebelum dimasukkan ke innerHTML (cegah XSS).
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[char]);
+}
+
 // Guard: hanya user yang sudah login yang bisa mengakses wishlist
 if (!isAuthenticated() || isGuest()) {
   const redirectTarget = encodeURIComponent(window.location.href);
@@ -47,7 +58,7 @@ function initNavbarAuth() {
     const user = getUser();
     const displayName = user?.fullName || user?.email || 'Akun Saya';
     authNavContainer.innerHTML = `
-      <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">Halo, ${displayName}</span>
+      <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">Halo, ${escapeHtml(displayName)}</span>
       <button class="btn btn-outline" id="btnLogout" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Keluar</button>
     `;
 
@@ -122,24 +133,24 @@ function renderWishlist(items, purchasedSet = new Set()) {
     const readUrl = `https://openlibrary.org/works/${encodeURIComponent(cleanId)}`;
 
     const actionButtons = owned
-      ? `<a href="book-detail.html?id=${item.id}" class="btn btn-outline">Detail</a>
+      ? `<a href="book-detail.html?id=${encodeURIComponent(item.id)}" class="btn btn-outline">Detail</a>
          <a href="${readUrl}" target="_blank" rel="noopener" class="btn btn-primary">📖 Baca</a>`
-      : `<a href="book-detail.html?id=${item.id}" class="btn btn-outline">Detail</a>
+      : `<a href="book-detail.html?id=${encodeURIComponent(item.id)}" class="btn btn-outline">Detail</a>
          <a href="${checkoutUrl}" class="btn btn-primary">🛒 Beli</a>`;
 
     return `
-      <article class="wishlist-card${owned ? ' wishlist-card--owned' : ''}" data-id="${item.id}" style="animation: fadeInUp 0.3s ease both;">
+      <article class="wishlist-card${owned ? ' wishlist-card--owned' : ''}" data-id="${escapeHtml(item.id)}" style="animation: fadeInUp 0.3s ease both;">
         <div class="wishlist-card-cover-wrap">
-          <button class="btn-remove-wishlist" data-id="${item.id}" title="Hapus dari wishlist" aria-label="Hapus">
+          <button class="btn-remove-wishlist" data-id="${escapeHtml(item.id)}" title="Hapus dari wishlist" aria-label="Hapus">
             ✕
           </button>
           ${owned ? '<span class="wishlist-owned-badge">✅ Dimiliki</span>' : ''}
-          <img src="${item.thumbnail}" alt="${item.title}" class="wishlist-card-cover" onerror="this.src='https://via.placeholder.com/150x220?text=No+Cover';" />
+          <img src="${escapeHtml(item.thumbnail)}" alt="${escapeHtml(item.title)}" class="wishlist-card-cover" onerror="this.src='https://via.placeholder.com/150x220?text=No+Cover';" />
         </div>
         <div class="wishlist-card-body">
-          <div class="wishlist-card-category">${item.category || 'Umum'}</div>
-          <h3 class="wishlist-card-title">${item.title}</h3>
-          <div class="wishlist-card-author">oleh ${authors}</div>
+          <div class="wishlist-card-category">${escapeHtml(item.category || 'Umum')}</div>
+          <h3 class="wishlist-card-title">${escapeHtml(item.title)}</h3>
+          <div class="wishlist-card-author">oleh ${escapeHtml(authors)}</div>
           <div class="wishlist-card-price-row">
             ${owned
               ? '<div class="wishlist-card-price wishlist-card-price--owned">Sudah Dibeli</div>'

@@ -21,6 +21,17 @@ import {
 import { formatRupiah } from '../api/paymentApi.js';
 import { getUser, isAuthenticated, clearAuth, redirectIfAdmin } from '../utils/authStorage.js';
 
+// Escape teks sebelum dimasukkan ke innerHTML (cegah XSS).
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[char]);
+}
+
 // ---- Guard: hanya user login yang bisa akses cart ----
 if (!isAuthenticated()) {
   window.location.href = `login.html?redirect=cart.html`;
@@ -57,7 +68,7 @@ function initNavbarAuth() {
   const user = getUser();
   const displayName = user?.fullName || user?.username || 'Akun Saya';
   authNavContainer.innerHTML = `
-    <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">Halo, ${displayName}</span>
+    <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">Halo, ${escapeHtml(displayName)}</span>
     <button class="btn btn-outline" id="btnLogout" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Keluar</button>
   `;
   document.getElementById('btnLogout')?.addEventListener('click', () => {
@@ -170,22 +181,22 @@ function renderCartItem(item) {
     : (item.authors || 'Anonim');
 
   return `
-    <div class="cart-item" data-id="${item.id}">
+    <div class="cart-item" data-id="${escapeHtml(item.id)}">
       <img
-        src="${item.thumbnail}"
-        alt="${item.title}"
+        src="${escapeHtml(item.thumbnail)}"
+        alt="${escapeHtml(item.title)}"
         class="cart-item-cover"
         loading="lazy"
         onerror="this.src='https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&auto=format&fit=crop&q=80'"
       />
       <div class="cart-item-info">
-        <div class="cart-item-category">${item.category || 'Umum'}</div>
-        <div class="cart-item-title" title="${item.title}">${item.title}</div>
-        <div class="cart-item-author">${authors}</div>
+        <div class="cart-item-category">${escapeHtml(item.category || 'Umum')}</div>
+        <div class="cart-item-title" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</div>
+        <div class="cart-item-author">${escapeHtml(authors)}</div>
       </div>
       <div class="cart-item-controls">
         <div class="cart-item-subtotal">${formatRupiah(item.price)}</div>
-        <button class="btn-remove-cart" data-action="remove" data-id="${item.id}">Hapus</button>
+        <button class="btn-remove-cart" data-action="remove" data-id="${escapeHtml(item.id)}">Hapus</button>
       </div>
     </div>
   `;
