@@ -6,6 +6,17 @@ import { initMobileNav } from '../utils/mobileNav.js';
 import { getPaymentHistory, formatRupiah, formatDate } from '../api/paymentApi.js';
 import { isAuthenticated, isGuest, getUser, clearAuth, redirectIfAdmin } from '../utils/authStorage.js';
 
+// Escape teks sebelum dimasukkan ke innerHTML (cegah XSS).
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[char]);
+}
+
 // Guard: hanya user yang sudah login yang bisa mengakses perpustakaan
 if (!isAuthenticated() || isGuest()) {
   const redirectTarget = encodeURIComponent(window.location.href);
@@ -32,7 +43,7 @@ function initNavbarAuth() {
     const user = getUser();
     const displayName = user?.fullName || user?.email || 'Akun Saya';
     authNavContainer.innerHTML = `
-      <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">Halo, ${displayName}</span>
+      <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">Halo, ${escapeHtml(displayName)}</span>
       <button class="btn btn-outline" id="btnLogout" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Keluar</button>
     `;
 
@@ -142,15 +153,15 @@ function renderLibrary(books) {
     const paidDate = book.paidAt ? formatDate(book.paidAt) : '';
 
     return `
-      <article class="library-card" data-id="${book.id}" style="animation: fadeInUp 0.3s ease both;">
+      <article class="library-card" data-id="${escapeHtml(book.id)}" style="animation: fadeInUp 0.3s ease both;">
         <div class="library-card-cover-wrap">
           <span class="library-owned-badge">📖 Tersedia</span>
-          <img src="${book.thumbnail}" alt="${book.title}" class="library-card-cover" onerror="this.src='https://via.placeholder.com/150x220?text=No+Cover';" />
+          <img src="${escapeHtml(book.thumbnail)}" alt="${escapeHtml(book.title)}" class="library-card-cover" onerror="this.src='https://via.placeholder.com/150x220?text=No+Cover';" />
         </div>
         <div class="library-card-body">
-          <div class="library-card-category">${book.category || 'Umum'}</div>
-          <h3 class="library-card-title">${book.title}</h3>
-          <div class="library-card-author">oleh ${authors}</div>
+          <div class="library-card-category">${escapeHtml(book.category || 'Umum')}</div>
+          <h3 class="library-card-title">${escapeHtml(book.title)}</h3>
+          <div class="library-card-author">oleh ${escapeHtml(authors)}</div>
           <div class="library-card-price-row">
             <div class="library-card-price">${formatRupiah(book.price)}</div>
             ${paidDate ? `<div class="library-card-date">${paidDate}</div>` : ''}
