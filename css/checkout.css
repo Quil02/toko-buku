@@ -164,10 +164,78 @@
   margin: 0;
   flex-shrink: 0;
 }
-.payment-option-content { display: flex; align-items: center; gap: 0.75rem; }
-.payment-icon { font-size: 1.4rem; }
+.payment-option-content { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
 .payment-name { font-weight: 600; font-size: 0.95rem; color: var(--text); }
 .payment-desc { font-size: 0.8rem; color: var(--text-muted); }
+.payment-loading { font-size: 0.85rem; color: var(--text-muted); margin: 0; }
+
+/* Judul grup metode pembayaran (QRIS / Virtual Account / E-Wallet / Kartu) */
+.payment-group-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin: 0.9rem 0 -0.1rem;
+}
+.payment-group-title:first-child { margin-top: 0; }
+
+/* ---- Lencana merek bank / wallet ---- */
+/* Logo digambar dengan warna khas tiap merek (bukan file gambar), supaya
+   tetap tampil saat aplikasi dijalankan offline tanpa internet. */
+.brand-row { display: inline-flex; gap: 0.35rem; align-items: center; flex-shrink: 0; }
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  padding: 0.3rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #fff;
+  flex-shrink: 0;
+  line-height: 1.2;
+}
+.brand-qris { background: #e30613; }
+.brand-bca { background: #0060af; }
+.brand-mandiri { background: #003d79; }
+.brand-bri { background: #00529c; }
+.brand-bni { background: #f58220; }
+.brand-permata { background: #009a44; }
+.brand-gopay { background: #00aed6; }
+.brand-ovo { background: #4c3494; }
+.brand-dana { background: #108ee9; }
+.brand-shopeepay { background: #ee4d2d; }
+.brand-visa { background: #1a1f71; font-style: italic; letter-spacing: 0.06em; }
+/* Mastercard: dua lingkaran bertumpuk (merah + kuning). */
+.brand-mc { background: transparent; padding: 0.3rem 0; min-width: 0; }
+.mc-circle { width: 17px; height: 17px; border-radius: 50%; display: inline-block; }
+.mc-red { background: #eb001b; }
+.mc-yellow { background: #f79e1b; margin-left: -6px; opacity: 0.9; }
+
+/* Lencana QRIS di kartu instruksi pembayaran */
+.payment-detail-badge.qris {
+  background-color: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger-border);
+}
+
+/* Kotak kode QR (simulasi) */
+.qris-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 1rem;
+}
+.qris-box svg { width: 180px; height: 180px; color: #111; display: block; }
+.qris-caption { font-size: 0.78rem; color: var(--text-muted); text-align: center; }
 
 /* ---- Alert ---- */
 .checkout-alert {
