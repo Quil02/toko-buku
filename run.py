@@ -78,4 +78,4 @@ if __name__ == "__main__":
     if "--no-browser" not in sys.argv:
         threading.Timer(1.5, open_browser).start()
 
-    uvicorn.run(app, host="127.0.0.1", port=PORT)
+    uvicorn.run(app, host="0.0.0.0", port=PORT)
