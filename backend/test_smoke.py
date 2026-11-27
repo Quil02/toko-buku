@@ -132,6 +132,43 @@ def main():
         if not token:
             return 1
 
+        # Katalog metode pembayaran (Gramedia: QRIS, VA, e-wallet, kartu).
+        status, methods = http("GET", "/api/payment-methods")
+        ids = [m.get("id") for m in methods] if isinstance(methods, list) else []
+        check("GET /api/payment-methods mengembalikan katalog",
+              status == 200 and all(x in ids for x in
+                  ["qris", "va_bca", "va_mandiri", "va_bri", "va_bni", "va_permata",
+                   "gopay", "ovo", "dana", "shopeepay", "card"]),
+              f"status={status}, ids={ids}")
+
+        # Metode di luar katalog harus ditolak 400.
+        status, body = http("POST", "/api/transactions", {
+            "items": [{"id": "OL45804W", "title": "Buku Uji", "authors": ["Penulis Uji"]}],
+            "paymentMethod": "tidak-ada",
+            "buyer": {"name": "Smoke Test", "email": email},
+        }, token=token)
+        check("POST /api/transactions metode tidak dikenal ditolak 400",
+              status == 400, f"status={status}, body={body}")
+
+        # ID lama "bca" sudah tidak berlaku sejak jadi "va_bca".
+        status, body = http("POST", "/api/transactions", {
+            "items": [{"id": "OL45804W", "title": "Buku Uji", "authors": ["Penulis Uji"]}],
+            "paymentMethod": "bca",
+            "buyer": {"name": "Smoke Test", "email": email},
+        }, token=token)
+        check("POST /api/transactions id lama 'bca' ditolak 400",
+              status == 400, f"status={status}, body={body}")
+
+        # Transaksi QRIS berhasil dan menyimpan metodenya.
+        status, body = http("POST", "/api/transactions", {
+            "items": [{"id": "OL45804W", "title": "Buku Uji", "authors": ["Penulis Uji"]}],
+            "paymentMethod": "qris",
+            "buyer": {"name": "Smoke Test", "email": email},
+        }, token=token)
+        check("POST /api/transactions dengan QRIS berhasil",
+              status == 200 and body.get("paymentMethod") == "qris",
+              f"status={status}, body={body}")
+
         # Wishlist tanpa id harus ditolak 400.
         status, body = http("POST", "/api/wishlist",
                             {"title": "Tanpa ID"}, token=token)
