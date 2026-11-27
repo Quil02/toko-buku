@@ -4,7 +4,7 @@ from typing import Optional
 import sqlite3
 import json
 from models import DB_NAME, get_user_from_token
-from utils import get_timestamp
+from utils import get_timestamp, generate_price_from_id
 
 router = APIRouter()
 
@@ -48,7 +48,12 @@ async def add_to_wishlist(data: dict, authorization: Optional[str] = Header(None
     if not user:
         raise HTTPException(status_code=401, detail="Unauthorized")
     
-    book_id = data.get("id")
+    book_id = str(data.get("id") or "").strip()
+    if not book_id:
+        raise HTTPException(status_code=400, detail="ID buku wajib diisi!")
+
+    # Harga tidak dipercaya dari client; dihitung ulang di server.
+    price = generate_price_from_id(book_id)
     
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
@@ -67,7 +72,7 @@ async def add_to_wishlist(data: dict, authorization: Optional[str] = Header(None
             book_id,
             data.get("title", "Tanpa Judul"),
             json.dumps(data.get("authors", ["Anonim"])),
-            data.get("price", 0),
+            price,
             data.get("thumbnail"),
             data.get("category"),
             get_timestamp()
