@@ -4,3 +4,4 @@ specs.md
 __pycache__/
 *.py[cod]
 *.db
+desktop.ini
