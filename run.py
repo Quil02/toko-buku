@@ -28,7 +28,8 @@ PORT = int(os.environ.get("PORT", "8000"))
 os.chdir(BACKEND)
 sys.path.insert(0, str(BACKEND))
 
-from simple_api import app as api_app, init_db  # noqa: E402  (import setelah sys.path diatur)
+from app import app as api_app  # noqa: E402  (import setelah sys.path diatur)
+from models import init_db
 
 # Sub-app yang di-mount tidak menjalankan startup event, jadi inisialisasi DB di sini.
 init_db()

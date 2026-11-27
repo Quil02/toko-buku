@@ -154,6 +154,27 @@ export async function getPaymentHistory() {
 }
 
 /**
+ * Cek apakah buku sudah pernah dibeli oleh user yang sedang login.
+ * @param {string} bookId
+ * @returns {Promise<boolean>}
+ */
+export async function isPurchased(bookId) {
+  if (!bookId) return false;
+  try {
+    const response = await fetch(`${API_URL}/api/transactions/check/${encodeURIComponent(bookId)}`, {
+      method: 'GET',
+      headers: { ...getAuthHeader() },
+    });
+    if (!response.ok) return false;
+    const data = await response.json();
+    return Boolean(data.purchased);
+  } catch (error) {
+    console.error('isPurchased error:', error);
+    return false;
+  }
+}
+
+/**
  * Clear payment history from backend
  * @returns {Promise<boolean>}
  */

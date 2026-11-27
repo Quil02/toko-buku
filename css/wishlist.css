@@ -209,3 +209,33 @@
   flex-wrap: wrap;
   gap: 0.75rem;
 }
+
+/* ---- Card "Sudah Dimiliki" ---- */
+.wishlist-card--owned {
+  border-color: var(--success);
+  background: linear-gradient(to bottom, var(--success-bg) 0%, var(--surface) 60%);
+}
+.wishlist-card--owned:hover {
+  border-color: var(--success);
+  box-shadow: 0 4px 16px rgba(22, 163, 74, 0.15);
+}
+
+.wishlist-owned-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: var(--success);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
+  letter-spacing: 0.03em;
+}
+
+.wishlist-card-price--owned {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--success);
+}

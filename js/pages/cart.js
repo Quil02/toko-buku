@@ -1,9 +1,17 @@
-import { initMobileNav } from '../utils/mobileNav.js';
 /**
- * Logika Halaman Keranjang Belanja (Cart)
+ * CONTROLLER: Cart Page
+ * 
+ * Peran MVC:
+ * - Controller: event handlers (click, delete, checkout), guard authentication
+ * - View: fungsi render* yang menghasilkan innerHTML (renderCart, renderCartItem, dll)
+ * - Model: diakses via Service layer (js/api/cartApi.js) → backend API
+ * 
+ * Fitur:
  * - Guest / tidak login: redirect ke halaman login
- * - User login: lihat cart, ubah jumlah, hapus item, dan checkout
+ * - User login: lihat cart, hapus item, checkout
  */
+
+import { initMobileNav } from '../utils/mobileNav.js';
 
 import {
   getCart,
@@ -11,12 +19,15 @@ import {
   clearCart,
 } from '../api/cartApi.js';
 import { formatRupiah } from '../api/paymentApi.js';
-import { getUser, isAuthenticated, clearAuth } from '../utils/authStorage.js';
+import { getUser, isAuthenticated, clearAuth, redirectIfAdmin } from '../utils/authStorage.js';
 
 // ---- Guard: hanya user login yang bisa akses cart ----
 if (!isAuthenticated()) {
   window.location.href = `login.html?redirect=cart.html`;
 }
+
+// Admin tidak boleh di halaman ini
+redirectIfAdmin();
 
 // DOM
 const authNavContainer = document.getElementById('authNavContainer');
@@ -35,6 +46,7 @@ function initNavbarAuth() {
     mainNavLinks.innerHTML = `
       <a href="index.html" class="nav-link">Katalog</a>
       <a href="cart.html" class="nav-link active">Keranjang</a>
+      <a href="library.html" class="nav-link">Perpustakaan</a>
       <a href="wishlist.html" class="nav-link">Wishlist</a>
       <a href="history.html" class="nav-link">Riwayat Pembelian</a>
     `;

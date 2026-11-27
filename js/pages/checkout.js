@@ -5,7 +5,10 @@ import {
   savePayment,
   PAYMENT_METHOD_LABELS,
 } from "../api/paymentApi.js";
-import { getUser, isAuthenticated, isGuest, clearAuth } from "../utils/authStorage.js";
+import { getUser, isAuthenticated, isGuest, clearAuth, redirectIfAdmin } from "../utils/authStorage.js";
+
+// Admin tidak boleh di halaman ini
+redirectIfAdmin();
 
 // ---- Elemen DOM ----
 const orderBookInfoEl    = document.getElementById("orderBookInfo");
@@ -92,8 +95,6 @@ function prefillUserData() {
 
   buyerNameEl.value     = user.fullName || "";
   buyerEmailEl.value    = user.email || "";
-  buyerNameEl.readOnly  = true;
-  buyerEmailEl.readOnly = true;
 }
 
 // ---- Render Ringkasan Pesanan ----
@@ -303,6 +304,7 @@ function updateNavbar() {
     navEl.innerHTML = `
       <a href="index.html" class="nav-link">Katalog</a>
       <a href="cart.html" class="nav-link">Keranjang</a>
+      <a href="library.html" class="nav-link">Perpustakaan</a>
       <a href="wishlist.html" class="nav-link">Wishlist</a>
       <a href="history.html" class="nav-link">Riwayat Pembelian</a>
     `;

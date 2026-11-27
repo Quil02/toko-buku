@@ -5,13 +5,16 @@ import {
   formatRupiah,
   formatDate,
 } from "../api/paymentApi.js";
-import { getUser, isAuthenticated, isGuest, clearAuth } from "../utils/authStorage.js";
+import { getUser, isAuthenticated, isGuest, clearAuth, redirectIfAdmin } from "../utils/authStorage.js";
 
 // Guard: hanya user yang sudah login
 if (!isAuthenticated() || isGuest()) {
   const redirectTarget = encodeURIComponent(window.location.href);
   window.location.href = `login.html?redirect=${redirectTarget}`;
 }
+
+// Admin tidak boleh di halaman ini
+redirectIfAdmin();
 
 const historyListEl   = document.getElementById("historyList");
 const btnClearHistory = document.getElementById("btnClearHistory");

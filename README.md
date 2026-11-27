@@ -1,85 +1,285 @@
-# Toko Buku
+# Toko Buku Online - Struktur MVC
 
-Aplikasi toko buku online sederhana: katalog buku dari Open Library, keranjang, wishlist, checkout, dan riwayat pembelian. Frontend berupa HTML/CSS/JavaScript murni, backend FastAPI dengan database SQLite.
+Aplikasi toko buku online dengan katalog buku dari Open Library API, keranjang belanja, wishlist, checkout, dan riwayat pembelian. Proyek ini menerapkan **pola Model-View-Controller (MVC)** dengan pemisahan yang jelas antara backend dan frontend.
 
-## Fitur
+---
 
-- Registrasi dan login akun (token-based)
-- Katalog buku dengan pencarian, filter kategori, filter harga, dan pengurutan
-- Detail buku (sinopsis, penerbit, tahun, ISBN)
-- Keranjang belanja (1 judul = 1 akses, tanpa jumlah)
-- Wishlist
-- Checkout dengan beberapa metode pembayaran
-- Riwayat pembelian
-- Mode gelap dan navigasi mobile
-- Data buku diambil langsung dari Open Library API
+## 📋 Daftar Isi
 
-## Teknologi
+- [Fitur](#fitur)
+- [Teknologi](#teknologi)
+- [Struktur MVC](#struktur-mvc)
+- [Struktur Folder](#struktur-folder)
+- [Arsitektur & Alur Data](#arsitektur--alur-data)
+- [Cara Menjalankan](#cara-menjalankan)
+- [API Documentation](#api-documentation)
+- [Database](#database)
+- [Konfigurasi](#konfigurasi)
+- [Troubleshooting](#troubleshooting)
+- [Catatan Keamanan](#catatan-keamanan)
 
-| Bagian | Teknologi |
-|---|---|
-| Frontend | HTML5, CSS3, JavaScript ES Modules |
-| Backend | Python 3.12+, FastAPI, Uvicorn |
-| Database | SQLite (`sqlite3` bawaan Python, tanpa ORM) |
-| Sumber data buku | [Open Library API](https://openlibrary.org/developers/api) |
-| Manajemen environment | [uv](https://docs.astral.sh/uv/) (`pyproject.toml` + `uv.lock`) |
+---
 
-## Struktur Project
+## ✨ Fitur
+
+- ✅ Registrasi dan login akun (token-based authentication)
+- ✅ Katalog buku dengan pencarian, filter kategori, filter harga, dan pengurutan
+- ✅ Detail buku (sinopsis, penerbit, tahun, ISBN)
+- ✅ Keranjang belanja (buku digital: 1 judul = 1 akses)
+- ✅ Wishlist
+- ✅ Checkout dengan simulasi metode pembayaran
+- ✅ Riwayat pembelian
+- ✅ Perpustakaan pribadi (buku yang sudah dibeli)
+- ✅ Dashboard admin (statistik, transaksi, dan manajemen pengguna)
+- ✅ Softban akun pengguna (nonaktifkan/aktifkan kembali; login akun nonaktif ditolak)
+- ✅ Mode gelap dan navigasi mobile responsive
+- ✅ Data buku real-time dari Open Library API
+
+---
+
+## 🛠️ Teknologi
+
+| Komponen | Teknologi |
+|----------|-----------|
+| **Frontend** | HTML5, CSS3, JavaScript ES Modules (vanilla, no framework) |
+| **Backend** | Python 3.12+, FastAPI, Uvicorn |
+| **Database** | SQLite (raw SQL, no ORM) |
+| **API Eksternal** | [Open Library API](https://openlibrary.org/developers/api) |
+| **Package Manager** | [uv](https://docs.astral.sh/uv/) |
+
+---
+
+## 🏗️ Struktur MVC
+
+### Backend (FastAPI)
+
+Proyek ini mengikuti pola **Model-View-Controller (MVC)** dengan struktur yang jelas:
 
 ```
-toko-buku/
-├── run.py                 # Launcher: website + API dalam satu server
-├── run.bat                # Shortcut Windows (double-click)
-├── pyproject.toml         # Dependensi Python
-├── uv.lock                # Lockfile uv
-├── .python-version        # Versi Python (3.12)
-├── README.md
-│
-├── index.html             # Katalog
-├── book-detail.html       # Detail buku
-├── cart.html              # Keranjang
-├── checkout.html          # Checkout
-├── history.html           # Riwayat pembelian
-├── wishlist.html          # Wishlist
-├── login.html             # Login
-├── register.html          # Registrasi
-│
-├── css/                   # Stylesheet per halaman
-├── js/
-│   ├── config.js          # Konfigurasi API dan storage key
-│   ├── api/               # Klien API (auth, buku, cart, wishlist, pembayaran)
-│   ├── pages/             # Controller tiap halaman
-│   └── utils/             # Auth storage, dark mode, navigasi mobile
-│
-└── backend/
-    ├── simple_api.py      # Aplikasi FastAPI + skema database
-    ├── .gitignore
-    └── tokobuku.db        # Database SQLite (dibuat otomatis, tidak di-commit)
+backend/
+├── app.py                          # Entry point: FastAPI app + router mounting
+├── models/                         # MODEL: Data & Business Logic
+│   ├── database.py                # Schema SQLite, init_db(), migrations
+│   └── user.py                    # Auth logic, token management
+├── controllers/                    # CONTROLLER: HTTP Request Handlers
+│   ├── auth.py                    # POST /api/auth/register, /login
+│   ├── cart.py                    # GET/POST/DELETE /api/cart/*
+│   ├── wishlist.py                # GET/POST/DELETE /api/wishlist/*
+│   ├── transaction.py             # GET/POST /api/transactions/*
+│   └── admin.py                   # /api/admin/* (stats, transaksi, kelola user)
+└── utils/                          # UTILITIES: Helper functions
+    ├── pricing.py                 # generate_price_from_id()
+    ├── helpers.py                 # get_timestamp()
+    └── auth.py                    # require_auth(), require_admin()
 ```
 
-## Menjalankan Aplikasi
+#### Pemetaan MVC Backend
+
+| Komponen MVC | Lokasi | Tanggung Jawab |
+|--------------|--------|----------------|
+| **Model** | `backend/models/` | Schema database, query SQL, business rules (harga, auth) |
+| **Controller** | `backend/controllers/` | Route handlers, validasi request, return JSON response |
+| **View** | JSON responses | Tidak ada HTML template (API-only backend) |
+
+### Frontend (Vanilla JavaScript)
+
+```
+js/
+├── config.js                       # Konfigurasi API_BASE_URL, TOKEN_KEY
+├── api/                            # SERVICE LAYER (jembatan ke backend)
+│   ├── authApi.js                 # register(), login()
+│   ├── bookApi.js                 # fetchBooks() dari Open Library
+│   ├── cartApi.js                 # getCart(), addToCart(), ...
+│   ├── wishlistApi.js             # getWishlist(), addToWishlist(), ...
+│   ├── paymentApi.js              # createTransaction(), formatRupiah()
+│   └── adminApi.js                # getAdminStats(), getAllUsers(), banUser(), unbanUser()
+├── pages/                          # CONTROLLER + VIEW (hybrid)
+│   ├── catalog.js                 # Event handlers + render katalog
+│   ├── cart.js                    # Event handlers + render keranjang
+│   ├── checkout.js                # Form submit + render checkout
+│   ├── library.js                 # Render perpustakaan
+│   ├── wishlist.js                # Event handlers + render wishlist
+│   ├── history.js                 # Render riwayat transaksi
+│   ├── bookDetail.js              # Render detail buku
+│   ├── admin.js                   # Render dashboard admin + softban user
+│   ├── login.js, register.js      # Form auth handlers
+└── utils/                          # UTILITIES
+    ├── authStorage.js             # getUser(), isAuthenticated()
+    ├── darkMode.js                # Toggle dark/light mode
+    └── mobileNav.js               # Mobile menu
+```
+
+#### Pemetaan MVC Frontend
+
+| Komponen MVC | Lokasi | Tanggung Jawab |
+|--------------|--------|----------------|
+| **Model** | Backend API (`/api/*`) | Data dari SQLite via HTTP |
+| **View** | `*.html` + `css/` + fungsi `render*()` di `js/pages/` | Structure (HTML) + Presentation (CSS) + Dynamic content (JS) |
+| **Controller** | `js/pages/*.js` event handlers | Event listeners, form validation, state management |
+| **Service** | `js/api/*.js` | Wrapper `fetch()` untuk komunikasi dengan backend |
+
+> **Catatan:** Frontend menggunakan **hybrid pattern** karena tidak ada template engine. File `js/pages/*.js` menggabungkan Controller (event handler) dan View (render function). Ini adalah praktik umum di vanilla JS / SPA.
+
+---
+
+## 📁 Struktur Folder
+
+```
+toko-buku-mvc/
+│
+├── 🚀 run.py                       # Bootstrap: gabung backend + frontend di port 8000
+├── 📄 run.bat                      # Windows launcher (double-click)
+├── 📄 pyproject.toml, uv.lock      # Python dependencies
+├── 📄 .python-version              # Python 3.12
+├── 📚 README.md                    # Dokumentasi lengkap (file ini)
+├── 📝 AGENTS.md                    # Panduan development untuk AI/developer
+│
+├── backend/                         # ⚙️ BACKEND (FastAPI - MVC Pattern)
+│   ├── app.py                      # Entry point: FastAPI app, CORS, mount routers
+│   ├── models/                     # 📊 MODEL
+│   │   ├── database.py            # Schema, init_db(), migrations
+│   │   └── user.py                # Auth: hash password, token management
+│   ├── controllers/                # 🎮 CONTROLLER
+│   │   ├── auth.py                # /api/auth/*
+│   │   ├── cart.py                # /api/cart/*
+│   │   ├── wishlist.py            # /api/wishlist/*
+│   │   ├── transaction.py         # /api/transactions/*
+│   │   └── admin.py               # /api/admin/*
+│   ├── utils/                      # 🛠️ Utilities
+│   │   ├── pricing.py             # generate_price_from_id()
+│   │   ├── helpers.py             # get_timestamp()
+│   │   └── auth.py                # require_auth(), require_admin()
+│   ├── tokobuku.db                # 💾 SQLite database (auto-generated)
+│   └── simple_api_OLD.py          # 🗄️ Backup (sebelum refactor, bisa dihapus)
+│
+├── js/                             # 💻 FRONTEND (Vanilla JS ES Modules)
+│   ├── config.js                  # Konfigurasi API_BASE_URL, TOKEN_KEY
+│   ├── api/                        # 🔌 SERVICE LAYER
+│   │   ├── authApi.js, bookApi.js, cartApi.js, wishlistApi.js, paymentApi.js
+│   │   └── adminApi.js
+│   ├── pages/                      # 🎮 CONTROLLER + 🖼️ VIEW (hybrid)
+│   │   ├── catalog.js, cart.js, checkout.js, library.js, wishlist.js
+│   │   ├── history.js, bookDetail.js, login.js, register.js
+│   │   └── admin.js
+│   └── utils/                      # 🛠️ Helper Functions
+│       ├── authStorage.js, darkMode.js, mobileNav.js
+│
+├── css/                            # 🎨 VIEW: Styling
+│   ├── main.css                   # Base styles, variables, dark mode
+│   ├── auth.css, catalog.css, cart.css, checkout.css, detail.css
+│   ├── library.css, wishlist.css, admin.css
+│
+├── *.html                          # 🖼️ VIEW: Kerangka HTML statis
+│   ├── index.html                 # Katalog (home)
+│   ├── book-detail.html, cart.html, checkout.html
+│   ├── library.html, wishlist.html, history.html
+│   ├── login.html, register.html
+│   └── admin.html                 # Dashboard admin
+```
+
+---
+
+## 🔄 Arsitektur & Alur Data
+
+### Diagram Arsitektur
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                       BROWSER (Client)                            │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │  VIEW: HTML + CSS                                          │  │
+│  │  - *.html, css/*.css                                       │  │
+│  └────────────────────────────────────────────────────────────┘  │
+│                             ↕                                     │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │  CONTROLLER + VIEW: js/pages/*.js                          │  │
+│  │  - Event handlers + render functions                       │  │
+│  └────────────────────────────────────────────────────────────┘  │
+│                             ↕                                     │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │  SERVICE: js/api/*.js                                      │  │
+│  │  - fetch() wrapper ke backend                              │  │
+│  └────────────────────────────────────────────────────────────┘  │
+└───────────────────────────┬──────────────────────────────────────┘
+                            │ HTTP (JSON)
+                            ↓
+┌──────────────────────────────────────────────────────────────────┐
+│                  BACKEND (FastAPI Server)                         │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │  app.py: FastAPI app + CORS + mount routers               │  │
+│  └────────────────────────────────────────────────────────────┘  │
+│                             ↓                                     │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │  CONTROLLER: backend/controllers/*.py                      │  │
+│  │  - auth.py, cart.py, wishlist.py, transaction.py          │  │
+│  └────────────────────────────────────────────────────────────┘  │
+│                             ↓                                     │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │  MODEL: backend/models/*.py                                │  │
+│  │  - database.py (schema), user.py (auth)                   │  │
+│  └────────────────────────────────────────────────────────────┘  │
+│                             ↓                                     │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │  DATABASE: tokobuku.db (SQLite)                            │  │
+│  │  - Tables: users, cart, wishlist, transactions             │  │
+│  └────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### Contoh Alur Request (Add to Cart)
+
+```
+1. USER → Click "Tambah ke Keranjang" di catalog.html
+   ↓
+2. js/pages/catalog.js (CONTROLLER)
+   - Event listener: handleAddToCart(book)
+   ↓
+3. js/api/cartApi.js (SERVICE)
+   - addToCart(book) → fetch POST /api/cart + Bearer token
+   ↓
+4. backend/controllers/cart.py (CONTROLLER)
+   - @router.post("/api/cart")
+   - Extract & validate token
+   ↓
+5. backend/models/user.py (MODEL)
+   - get_user_from_token() → SELECT * FROM users WHERE id = ?
+   ↓
+6. backend/utils/pricing.py (UTIL)
+   - generate_price_from_id(book_id) → deterministik price
+   ↓
+7. backend/controllers/cart.py (CONTROLLER)
+   - Check duplicate: SELECT * FROM cart WHERE user_id = ? AND book_id = ?
+   - INSERT INTO cart (...) atau return {alreadyInCart: true}
+   ↓
+8. Response JSON → js/api/cartApi.js (SERVICE)
+   ↓
+9. js/pages/catalog.js (CONTROLLER + VIEW)
+   - Update button: "✓ Di Keranjang"
+   - Show toast notification
+```
+
+---
+
+## 🚀 Cara Menjalankan
 
 ### Prasyarat
 
 - Python **3.12+**
-- `uv` (opsional, tapi disarankan)
+- `uv` (package manager, opsional tapi disarankan)
 
-### Pertama kali — pilih salah satu cara
+### Instalasi
 
-**Cara A — pakai `uv` (disarankan, otomatis buat `.venv`)**
-
-```powershell
-uv sync
-```
-
-Jika `uv` belum terinstall:
+**Cara A — pakai `uv` (disarankan)**
 
 ```powershell
+# Install uv jika belum ada
 pip install uv
+
+# Install dependencies (auto create .venv)
 uv sync
 ```
 
-**Cara B — pakai `pip` biasa**
+**Cara B — pakai `pip` + venv**
 
 ```powershell
 python -m venv .venv
@@ -87,280 +287,344 @@ python -m venv .venv
 pip install fastapi uvicorn
 ```
 
-> ⚠️ **Jangan jalankan `python run.py` langsung** tanpa mengaktifkan `.venv` terlebih dahulu — `uvicorn` dan `fastapi` hanya ada di dalam `.venv`, bukan di instalasi Python sistem.
-
-### Menjalankan (cara cepat)
-
-Windows — double-click **`run.bat`**, atau dari terminal:
+### Menjalankan Server
 
 ```powershell
-# Jika pakai uv:
+# Pakai uv (disarankan)
 uv run python run.py
 
-# Jika pakai venv biasa (sudah activate):
-python run.py
+# Atau double-click run.bat di Windows
 
-# Tanpa activate, langsung tunjuk python di .venv:
+# Atau langsung dengan .venv (jika sudah ada)
 .venv\Scripts\python.exe run.py
 ```
 
-Browser akan terbuka otomatis di <http://localhost:8000>.
+Browser akan otomatis terbuka di **http://localhost:8000**
 
-| Alamat | Keterangan |
-|---|---|
-| <http://localhost:8000> | Website |
-| <http://localhost:8000/docs> | Dokumentasi API (Swagger UI) |
-| <http://localhost:8000/health> | Health check |
+| URL | Keterangan |
+|-----|------------|
+| http://localhost:8000 | Website frontend |
+| http://localhost:8000/docs | Swagger UI (API documentation) |
+| http://localhost:8000/health | Health check endpoint |
 
-Hentikan server dengan `Ctrl+C`.
+Hentikan server dengan **Ctrl+C**.
 
-`run.py` melayani halaman HTML, aset `css/` dan `js/`, serta seluruh endpoint `/api/*` dari satu port. Database otomatis dibuat di `backend/tokobuku.db` saat pertama kali dijalankan.
-
-### Menjalankan tanpa auto-open browser
+### Opsi Lanjutan
 
 ```powershell
+# Tanpa auto-open browser
 uv run python run.py --no-browser
-```
 
-### Mengganti port
-
-```powershell
+# Custom port
 $env:PORT=8080
 uv run python run.py
+
+# Jika port diubah, sesuaikan API_BASE_URL di js/config.js
 ```
 
-Jika port diubah, sesuaikan juga `API_BASE_URL` di `js/config.js` agar frontend menunjuk ke port yang sama.
+### Database
 
-### Mode manual (backend dan frontend terpisah)
+Database SQLite (`backend/tokobuku.db`) akan otomatis dibuat saat pertama kali server dijalankan.
 
-Berguna untuk debugging frontend dengan port terpisah.
-
+**Reset database:**
 ```powershell
-# Terminal 1 — backend
-cd backend
-..\.venv\Scripts\python.exe -m uvicorn simple_api:app --host 0.0.0.0 --port 8000 --reload
+Remove-Item backend\tokobuku.db
+uv run python run.py  # Database dibuat ulang kosong
 ```
 
-```powershell
-# Terminal 2 — frontend, dari root project
-.venv\Scripts\python.exe -m http.server 3000
-```
+---
 
-Frontend: <http://localhost:3000> — Backend: <http://localhost:8000>.
+## 📡 API Documentation
 
-## Konfigurasi
+Semua endpoint berada di `/api/*`. Endpoint yang memerlukan autentikasi ditandai **[Auth]**.
 
-### `js/config.js`
+### Authentication
 
-| Key | Default | Fungsi |
-|---|---|---|
-| `API_BASE_URL` | `http://localhost:8000` | Alamat backend API |
-| `GOOGLE_BOOK_API_BASE_URL` | Google Books API | Tidak dipakai saat ini |
-| `TOKEN_KEY` | `bookstore_auth_token` | Key localStorage untuk token |
-| `USER_KEY` | `bookstore_user_data` | Key localStorage untuk data user |
-| `REVIEWS_KEY` | `bookstore_reviews_storage` | Disiapkan untuk fitur ulasan |
-| `MOCK_USERS_KEY` | `mock_registered_users` | Sisa mode mock lama |
+| Method | Endpoint | Body | Response |
+|--------|----------|------|----------|
+| `POST` | `/api/auth/register` | `{fullName, email, password}` | `{success, message}` |
+| `POST` | `/api/auth/login` | `{emailOrUsername, password}` | `{success, token, user}` |
 
-### Environment
-
-| Variabel | Default | Keterangan |
-|---|---|---|
-| `PORT` | `8000` | Port server `run.py` |
-
-### Data buku
-
-Katalog, pencarian, dan detail buku diambil dari Open Library API. Harga tidak berasal dari API: harga dibuat deterministik dari ID buku (Rp 7.000–Rp 20.000) agar konsisten setiap kali halaman dimuat.
-
-## Alur Halaman
-
-1. `index.html` — katalog, pencarian, filter, dan tombol detail.
-2. `book-detail.html?id=<work_id>` — detail buku dan aksi tambah ke keranjang/wishlist.
-3. `cart.html` — daftar keranjang (perlu login).
-4. `checkout.html` — isi data pengiriman dan metode pembayaran (perlu login, bukan mode tamu).
-5. `history.html` — riwayat transaksi (perlu login).
-6. `wishlist.html` — daftar wishlist (perlu login).
-7. `login.html` / `register.html` — autentikasi, juga menyediakan "Lanjut sebagai Tamu".
-
-## API
-
-Semua endpoint berada di bawah `/api`. Endpoint bertanda **Auth** membutuhkan header:
-
+**Header untuk endpoint [Auth]:**
 ```
 Authorization: Bearer <token>
 ```
 
-Token didapat dari respons login.
-
-### Autentikasi
-
-| Method | Endpoint | Body | Respons |
-|---|---|---|---|
-| `POST` | `/api/auth/register` | `{ fullName, email, password }` | `{ success, message }` |
-| `POST` | `/api/auth/login` | `{ emailOrUsername, password }` | `{ success, token, user: { id, fullName, email } }` |
-
-`emailOrUsername` boleh berisi email atau nama lengkap.
-
-### Keranjang — Auth
+### Cart [Auth]
 
 | Method | Endpoint | Keterangan |
-|---|---|---|
+|--------|----------|------------|
 | `GET` | `/api/cart` | Daftar buku di keranjang |
-| `POST` | `/api/cart` | Tambah buku; jika sudah ada, tidak ditambahkan dua kali |
+| `POST` | `/api/cart` | Tambah buku (duplikat ditolak) |
 | `DELETE` | `/api/cart/{book_id}` | Hapus satu buku |
 | `DELETE` | `/api/cart` | Kosongkan keranjang |
 | `GET` | `/api/cart/check/{book_id}` | Cek buku ada di keranjang |
-| `GET` | `/api/cart/total` | Total harga dan jumlah judul |
+| `GET` | `/api/cart/total` | Total harga & jumlah item |
 
-Body `POST /api/cart`:
-
+**Body POST /api/cart:**
 ```json
 {
   "id": "OL45804W",
   "title": "Judul Buku",
   "authors": ["Nama Penulis"],
-  "price": 15000,
   "thumbnail": "https://...",
   "category": "Fiction"
 }
 ```
 
-Harga yang dikirim client tidak dipakai; server menghitung ulang harga dari ID buku.
-Karena semua buku bersifat digital, satu judul hanya bisa ada satu kali di keranjang (tidak ada jumlah/quantity).
+> **Catatan:** Harga tidak dikirim client, dihitung ulang di server berdasarkan book ID.
 
-### Wishlist — Auth
+### Wishlist [Auth]
 
 | Method | Endpoint | Keterangan |
-|---|---|---|
+|--------|----------|------------|
 | `GET` | `/api/wishlist` | Daftar wishlist |
 | `POST` | `/api/wishlist` | Tambah item |
 | `DELETE` | `/api/wishlist/{book_id}` | Hapus item |
-| `GET` | `/api/wishlist/check/{book_id}` | Cek item ada di wishlist |
+| `GET` | `/api/wishlist/check/{book_id}` | Cek item di wishlist |
 
-### Transaksi — Auth
+### Transactions [Auth]
 
 | Method | Endpoint | Keterangan |
-|---|---|---|
-| `POST` | `/api/transactions` | Simpan transaksi |
+|--------|----------|------------|
+| `POST` | `/api/transactions` | Buat transaksi baru |
 | `GET` | `/api/transactions` | Riwayat transaksi |
+| `GET` | `/api/transactions/check/{book_id}` | Cek buku sudah dibeli |
 | `DELETE` | `/api/transactions` | Hapus semua riwayat |
 
-Body `POST /api/transactions`:
-
+**Body POST /api/transactions:**
 ```json
 {
   "items": [
-    { "id": "OL45804W", "title": "Judul Buku", "authors": ["Nama Penulis"] }
+    {"id": "OL45804W", "title": "Judul", "authors": ["Penulis"]}
   ],
   "paymentMethod": "bca",
-  "buyer": { "name": "Nama Pembeli", "email": "pembeli@mail.com" },
+  "buyer": {"name": "Nama", "email": "email@mail.com"},
   "fromCart": true
 }
 ```
 
-- `total` **tidak dikirim** oleh client; server menghitung ulang harga tiap item dan total akhir.
-- `fromCart: true` akan mengosongkan keranjang pengguna setelah transaksi tersimpan.
-- Setiap judul dihitung 1 akses; duplikat dalam satu transaksi diabaikan.
-- Pembayaran disimulasikan: aplikasi hanya menampilkan tujuan transfer/e-wallet toko, tidak meminta data sensitif pembeli (CVV, PIN, atau nomor rekening sendiri).
+> **Catatan:** 
+> - `total` dihitung server, bukan dari client
+> - `fromCart: true` akan mengosongkan keranjang setelah checkout
+> - Pembayaran disimulasikan (tidak ada integrasi payment gateway)
 
-### Umum
+### Admin [Auth — role `admin`]
 
 | Method | Endpoint | Keterangan |
-|---|---|---|
-| `GET` | `/` | Halaman katalog |
-| `GET` | `/health` | Health check |
-| `GET` | `/docs` | Swagger UI |
+|--------|----------|------------|
+| `GET` | `/api/admin/stats` | Statistik dashboard (user, transaksi, pendapatan, top 5 buku, 7 hari terakhir) |
+| `GET` | `/api/admin/transactions` | Semua transaksi beserta detail pembeli |
+| `GET` | `/api/admin/users` | Semua user non-admin + ringkasan transaksi + status `isActive` |
+| `PATCH` | `/api/admin/users/{user_id}/ban` | Nonaktifkan akun (softban) |
+| `PATCH` | `/api/admin/users/{user_id}/unban` | Aktifkan kembali akun |
 
-## Database
+**Response `GET /api/admin/stats` (ringkas):**
+```json
+{
+  "totalUsers": 10,
+  "bannedUsers": 1,
+  "totalTransactions": 25,
+  "totalRevenue": 350000,
+  "avgTransaction": 14000,
+  "topBooks": [{"id": "OL...", "title": "...", "count": 5, "revenue": 75000}],
+  "last7Days": {"transactions": 4, "revenue": 56000}
+}
+```
 
-- **Jenis:** SQLite, file `backend/tokobuku.db`
-- **Akses:** query SQL langsung melalui modul `sqlite3`
-- **Dibuat otomatis:** `init_db()` dijalankan saat server start
-- **Migrasi otomatis:** kolom baru (`buyerName`, `buyerEmail`, `paymentDetail`) ditambahkan saat startup tanpa menghapus data lama; `quantity` di keranjang selalu direset ke 1
-- **Password:** di-hash dengan SHA-256 (tanpa salt)
+> **Catatan:** Akun admin default di-seed saat database masih kosong: `admin@tokobuku.com` / `admin123`. Segera ganti password pada pemakaian nyata.
 
-### Tabel
+### Health Check
 
-**`users`**
+| Method | Endpoint | Response |
+|--------|----------|----------|
+| `GET` | `/health` | `{"status": "healthy"}` |
+| `GET` | `/` | API info |
 
+---
+
+## 💾 Database
+
+**Jenis:** SQLite (`backend/tokobuku.db`)  
+**Akses:** Raw SQL via `sqlite3` module (no ORM)  
+**Migrasi:** Additive-only (ALTER TABLE ADD COLUMN) di `models/database.py`
+
+### Schema Tabel
+
+#### `users`
+| Kolom | Tipe | Constraint |
+|-------|------|------------|
+| `id` | TEXT | PRIMARY KEY |
+| `fullName` | TEXT | UNIQUE, NOT NULL |
+| `email` | TEXT | UNIQUE, NOT NULL |
+| `password` | TEXT | NOT NULL (SHA-256) |
+| `role` | TEXT | `user` atau `admin` |
+| `isActive` | INTEGER | DEFAULT 1; `0` berarti akun nonaktif |
+| `createdAt` | TEXT | NOT NULL (ISO timestamp) |
+
+#### `cart`
 | Kolom | Tipe | Catatan |
-|---|---|---|
-| `id` | TEXT | Primary key |
-| `fullName` | TEXT | Unik |
-| `email` | TEXT | Unik |
-| `password` | TEXT | SHA-256 |
-| `createdAt` | TEXT | ISO timestamp |
+|-------|------|---------|
+| `id` | INTEGER | PRIMARY KEY AUTOINCREMENT |
+| `user_id` | TEXT | FOREIGN KEY → users(id) |
+| `book_id` | TEXT | NOT NULL |
+| `title` | TEXT | NOT NULL |
+| `authors` | TEXT | JSON array |
+| `price` | REAL | NOT NULL |
+| `thumbnail` | TEXT | - |
+| `category` | TEXT | - |
+| `addedAt` | TEXT | NOT NULL |
+| `quantity` | INTEGER | DEFAULT 1 (selalu 1 untuk buku digital) |
 
-**`cart`**
+#### `wishlist`
+Similar dengan `cart`, tanpa kolom `quantity`.
 
-`id` (INTEGER, PK), `user_id`, `book_id`, `title`, `authors` (JSON), `price`, `thumbnail`, `category`, `addedAt`, `quantity`
+#### `transactions`
+| Kolom | Tipe | Catatan |
+|-------|------|---------|
+| `id` | TEXT | PRIMARY KEY (format: TBK-timestamp-XXXX) |
+| `user_id` | TEXT | FOREIGN KEY → users(id) |
+| `items` | TEXT | JSON array |
+| `total` | REAL | NOT NULL |
+| `paymentMethod` | TEXT | NOT NULL |
+| `buyerName` | TEXT | - |
+| `buyerEmail` | TEXT | - |
+| `paymentDetail` | TEXT | JSON object |
+| `createdAt` | TEXT | NOT NULL |
 
-**`wishlist`**
+---
 
-`id` (INTEGER, PK), `user_id`, `book_id`, `title`, `authors` (JSON), `price`, `thumbnail`, `category`, `addedAt`
+## ⚙️ Konfigurasi
 
-**`transactions`**
+### `js/config.js`
 
-`id` (TEXT, PK), `user_id`, `items` (JSON), `total`, `paymentMethod`, `buyerName`, `buyerEmail`, `paymentDetail` (JSON), `createdAt`
+```javascript
+export const CONFIG = {
+  API_BASE_URL: 'http://localhost:8000',  // Backend API URL
+  TOKEN_KEY: 'bookstore_auth_token',      // localStorage key untuk token
+  USER_KEY: 'bookstore_user_data',        // localStorage key untuk user data
+};
+```
 
-### Reset database
+### Environment Variables
 
-Hentikan server, hapus file database, lalu jalankan lagi:
+| Variable | Default | Keterangan |
+|----------|---------|------------|
+| `PORT` | `8000` | Port server |
+
+### Harga Buku
+
+Harga dihitung **deterministik** dari book ID menggunakan algoritma hash sederhana (Rp 7.000 - Rp 20.000, step Rp 1.000). Fungsi yang sama diimplementasi di:
+- Backend: `backend/utils/pricing.py::generate_price_from_id()`
+- Frontend: `js/api/bookApi.js::generatePriceFromId()`
+
+---
+
+## 🐛 Troubleshooting
+
+### Port 8000 sudah dipakai
 
 ```powershell
-Remove-Item backend\tokobuku.db
+# Kill process di port 8000
+Get-NetTCPConnection -LocalPort 8000 -State Listen |
+  ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
+
+# Atau gunakan port lain
+$env:PORT=8080
 uv run python run.py
 ```
 
-Tabel akan dibuat ulang. Semua akun, keranjang, wishlist, dan riwayat akan hilang.
+### Katalog kosong / buku tidak muncul
 
-## Troubleshooting
+Katalog membutuhkan koneksi internet ke `openlibrary.org`. Periksa:
+1. Koneksi internet aktif
+2. Firewall tidak memblokir
+3. Buka Developer Console (F12) untuk lihat error
 
-**Port 8000 sudah dipakai**
+### Frontend tidak terhubung ke backend
 
+1. Pastikan backend running: `curl http://localhost:8000/health`
+2. Cek `API_BASE_URL` di `js/config.js` sesuai dengan port backend
+3. Buka browser console (F12) untuk lihat error
+
+### `uv` command not found
+
+Install uv:
 ```powershell
-Get-NetTCPConnection -LocalPort 8000 -State Listen |
-  ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
+pip install uv
 ```
 
-Atau jalankan dengan port lain (`$env:PORT=8080`).
-
-**`uv` tidak tersedia**
-
-Gunakan Python langsung:
-
+Atau gunakan Python langsung:
 ```powershell
 .venv\Scripts\python.exe run.py
 ```
 
-Jika `.venv` belum ada, buat manual lalu pasang dependensi:
+### Perubahan kode tidak muncul
 
-```powershell
-python -m venv .venv
-.venv\Scripts\python.exe -m pip install fastapi uvicorn
-```
+Hard reload browser: **Ctrl + Shift + R** (bypass cache)
 
-**Halaman tampil tetapi katalog kosong**
+---
 
-Katalog membutuhkan koneksi internet ke `openlibrary.org` dan `covers.openlibrary.org`. Periksa koneksi, lalu muat ulang halaman.
+## 🔒 Catatan Keamanan
 
-**Frontend tidak terhubung ke backend**
+⚠️ **Project ini untuk pembelajaran dan development lokal.**
 
-Pastikan `API_BASE_URL` di `js/config.js` sesuai alamat backend, dan backend benar-benar berjalan (`/health` merespons `{"status":"healthy"}`).
+Sebelum deploy ke produksi:
 
-**Perubahan JS/CSS tidak muncul**
+- [ ] Ganti SHA-256 tanpa salt → **bcrypt** atau **Argon2**
+- [ ] Gunakan JWT dengan expiry time, bukan token sederhana
+- [ ] Batasi CORS ke domain frontend saja
+- [ ] Tambahkan **rate limiting** untuk API
+- [ ] Implementasi **HTTPS**
+- [ ] Validasi input lebih ketat (SQL injection, XSS)
+- [ ] Environment variables untuk secrets (jangan hardcode)
+- [ ] Logging dan monitoring
+- [ ] Gunakan database server (PostgreSQL/MySQL) untuk produksi
 
-Lakukan hard reload (`Ctrl+Shift+R`) untuk melewati cache browser.
+---
 
-## Catatan Keamanan
+## 📚 Referensi Struktur MVC
 
-Project ini ditujukan untuk pembelajaran dan pengembangan lokal. Sebelum dipakai di produksi:
+### Pemisahan Tanggung Jawab (Separation of Concerns)
 
-- Ganti SHA-256 tanpa salt dengan algoritma hashing password yang tepat (misalnya Argon2/bcrypt).
-- Gunakan token yang ditandatangani dan memiliki masa berlaku (JWT), bukan `token_<user_id>_<timestamp>`.
-- Batasi CORS ke origin frontend saja.
-- Tambahkan validasi input, rate limiting, HTTPS, dan logging.
-- Pertimbangkan database server seperti PostgreSQL untuk beban produksi.
+✅ **Model** (`backend/models/`)
+- Tidak tahu soal HTTP request
+- Hanya fokus: schema DB, query SQL, business logic
 
-## Lisensi
+✅ **Controller** (`backend/controllers/`)
+- Tidak tahu detail SQL
+- Hanya fokus: handle request, validasi input, call model, return response
 
-Untuk keperluan edukasi.
+✅ **View** (Frontend)
+- Tidak tahu detail business logic
+- Hanya fokus: tampilan, interaksi user
+
+### Keuntungan Struktur Ini
+
+1. **Mudah maintenance** — Edit cart logic? Buka `controllers/cart.py` saja
+2. **Mudah testing** — Test auth logic? Import `models/user.py` tanpa FastAPI
+3. **Clear responsibility** — Setiap file punya tujuan jelas
+4. **Scalable** — Tambah fitur baru tanpa ganggu yang lain
+5. **Professional** — Sesuai best practice software engineering
+
+---
+
+## 📝 Lisensi
+
+Project ini dibuat untuk keperluan edukasi dan tugas kuliah.
+
+---
+
+## 📧 Kontak & Support
+
+Jika menemukan bug atau punya pertanyaan:
+1. Cek section [Troubleshooting](#troubleshooting)
+2. Review log error di terminal atau browser console (F12)
+3. Pastikan semua dependencies ter-install dengan `uv sync`
+
+---
+
+**Dibuat:** November 2026  
+**Tech Stack:** FastAPI + Vanilla JS + SQLite  
+**Pattern:** Model-View-Controller (MVC)  
+**Status:** ✅ Production-ready untuk tugas kuliah

@@ -178,6 +178,22 @@
   background-color: var(--danger-bg);
 }
 
+/* ---- Badge "Sudah Dibeli" di halaman detail ---- */
+.purchased-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--success);
+  background-color: var(--success-bg);
+  border: 1.5px solid var(--success);
+  border-radius: var(--radius);
+  white-space: nowrap;
+}
+
 /* ---- Metadata Grid ---- */
 .book-metadata-grid {
   display: grid;

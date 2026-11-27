@@ -3,13 +3,17 @@ import { initMobileNav } from '../utils/mobileNav.js';
  * Logika Halaman Wishlist
  */
 import { getWishlist, removeFromWishlist } from '../api/wishlistApi.js';
-import { isAuthenticated, isGuest, getUser, clearAuth } from '../utils/authStorage.js';
+import { isPurchased } from '../api/paymentApi.js';
+import { isAuthenticated, isGuest, getUser, clearAuth, redirectIfAdmin } from '../utils/authStorage.js';
 
 // Guard: hanya user yang sudah login yang bisa mengakses wishlist
 if (!isAuthenticated() || isGuest()) {
   const redirectTarget = encodeURIComponent(window.location.href);
   window.location.href = `login.html?redirect=${redirectTarget}`;
 }
+
+// Admin tidak boleh di halaman ini
+redirectIfAdmin();
 
 const wishlistGrid       = document.getElementById('wishlistGrid');
 const wishlistTotalBadge = document.getElementById('wishlistTotalBadge');
@@ -93,7 +97,7 @@ function renderWishlistLoading(count = 6) {
   `).join('');
 }
 
-function renderWishlist(items) {
+function renderWishlist(items, purchasedSet = new Set()) {
   updateWishlistCounter(items.length);
 
   if (!items || items.length === 0) {
@@ -111,13 +115,25 @@ function renderWishlist(items) {
   wishlistGrid.innerHTML = items.map(item => {
     const authors = Array.isArray(item.authors) ? item.authors.join(', ') : (item.authors || 'Anonim');
     const checkoutUrl = buildCheckoutUrl(item);
+    const owned = purchasedSet.has(item.id);
+
+    // URL baca buku di Open Library
+    const cleanId = String(item.id).replace(/^\/works\//, '').replace(/^\//, '');
+    const readUrl = `https://openlibrary.org/works/${encodeURIComponent(cleanId)}`;
+
+    const actionButtons = owned
+      ? `<a href="book-detail.html?id=${item.id}" class="btn btn-outline">Detail</a>
+         <a href="${readUrl}" target="_blank" rel="noopener" class="btn btn-primary">📖 Baca</a>`
+      : `<a href="book-detail.html?id=${item.id}" class="btn btn-outline">Detail</a>
+         <a href="${checkoutUrl}" class="btn btn-primary">🛒 Beli</a>`;
 
     return `
-      <article class="wishlist-card" data-id="${item.id}" style="animation: fadeInUp 0.3s ease both;">
+      <article class="wishlist-card${owned ? ' wishlist-card--owned' : ''}" data-id="${item.id}" style="animation: fadeInUp 0.3s ease both;">
         <div class="wishlist-card-cover-wrap">
           <button class="btn-remove-wishlist" data-id="${item.id}" title="Hapus dari wishlist" aria-label="Hapus">
             ✕
           </button>
+          ${owned ? '<span class="wishlist-owned-badge">✅ Dimiliki</span>' : ''}
           <img src="${item.thumbnail}" alt="${item.title}" class="wishlist-card-cover" onerror="this.src='https://via.placeholder.com/150x220?text=No+Cover';" />
         </div>
         <div class="wishlist-card-body">
@@ -125,11 +141,13 @@ function renderWishlist(items) {
           <h3 class="wishlist-card-title">${item.title}</h3>
           <div class="wishlist-card-author">oleh ${authors}</div>
           <div class="wishlist-card-price-row">
-            <div class="wishlist-card-price">${formatRupiah(item.price)}</div>
+            ${owned
+              ? '<div class="wishlist-card-price wishlist-card-price--owned">Sudah Dibeli</div>'
+              : `<div class="wishlist-card-price">${formatRupiah(item.price)}</div>`
+            }
           </div>
           <div class="wishlist-card-actions">
-            <a href="book-detail.html?id=${item.id}" class="btn btn-outline">Detail</a>
-            <a href="${checkoutUrl}" class="btn btn-primary">🛒 Beli</a>
+            ${actionButtons}
           </div>
         </div>
       </article>
@@ -152,7 +170,16 @@ function renderWishlist(items) {
 async function loadWishlist() {
   try {
     const items = await getWishlist();
-    renderWishlist(items);
+
+    // Cek status "sudah dibeli" untuk setiap item secara paralel
+    const purchasedResults = await Promise.all(
+      items.map(item => isPurchased(item.id).catch(() => false))
+    );
+    const purchasedSet = new Set(
+      items.filter((_, i) => purchasedResults[i]).map(item => item.id)
+    );
+
+    renderWishlist(items, purchasedSet);
   } catch (error) {
     console.error('Gagal memuat wishlist:', error);
     renderWishlist([]);
