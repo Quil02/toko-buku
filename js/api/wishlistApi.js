@@ -57,7 +57,6 @@ export async function addToWishlist(book) {
         title: book.title || 'Tanpa Judul',
         authors: book.authors || ['Anonim'],
         price: book.price || 0,
-        stock: typeof book.stock === 'number' ? book.stock : 10,
         thumbnail: book.thumbnail || 'https://via.placeholder.com/150x220?text=No+Cover',
         category: book.category || 'Umum',
       }),

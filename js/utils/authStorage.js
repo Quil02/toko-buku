@@ -71,6 +71,19 @@ export function isGuest() {
   }
 }
 
+/**
+ * Jika user yang login adalah admin, redirect ke admin.html.
+ * Panggil di awal setiap halaman user (catalog, cart, dll).
+ */
+export function redirectIfAdmin() {
+  const user = getUser();
+  if (user?.role === 'admin') {
+    window.location.href = 'admin.html';
+    return true;
+  }
+  return false;
+}
+
 export default {
   setAuth,
   getToken,
@@ -79,4 +92,5 @@ export default {
   clearAuth,
   setGuest,
   isGuest,
+  redirectIfAdmin,
 };

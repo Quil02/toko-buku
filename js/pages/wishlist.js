@@ -3,13 +3,28 @@ import { initMobileNav } from '../utils/mobileNav.js';
  * Logika Halaman Wishlist
  */
 import { getWishlist, removeFromWishlist } from '../api/wishlistApi.js';
-import { isAuthenticated, isGuest, getUser, clearAuth } from '../utils/authStorage.js';
+import { isPurchased } from '../api/paymentApi.js';
+import { isAuthenticated, isGuest, getUser, clearAuth, redirectIfAdmin } from '../utils/authStorage.js';
+
+// Escape teks sebelum dimasukkan ke innerHTML (cegah XSS).
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[char]);
+}
 
 // Guard: hanya user yang sudah login yang bisa mengakses wishlist
 if (!isAuthenticated() || isGuest()) {
   const redirectTarget = encodeURIComponent(window.location.href);
   window.location.href = `login.html?redirect=${redirectTarget}`;
 }
+
+// Admin tidak boleh di halaman ini
+redirectIfAdmin();
 
 const wishlistGrid       = document.getElementById('wishlistGrid');
 const wishlistTotalBadge = document.getElementById('wishlistTotalBadge');
@@ -43,7 +58,7 @@ function initNavbarAuth() {
     const user = getUser();
     const displayName = user?.fullName || user?.email || 'Akun Saya';
     authNavContainer.innerHTML = `
-      <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">Halo, ${displayName}</span>
+      <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">Halo, ${escapeHtml(displayName)}</span>
       <button class="btn btn-outline" id="btnLogout" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Keluar</button>
     `;
 
@@ -93,8 +108,7 @@ function renderWishlistLoading(count = 6) {
   `).join('');
 }
 
-function renderWishlist() {
-  const items = getWishlist();
+function renderWishlist(items, purchasedSet = new Set()) {
   updateWishlistCounter(items.length);
 
   if (!items || items.length === 0) {
@@ -112,25 +126,39 @@ function renderWishlist() {
   wishlistGrid.innerHTML = items.map(item => {
     const authors = Array.isArray(item.authors) ? item.authors.join(', ') : (item.authors || 'Anonim');
     const checkoutUrl = buildCheckoutUrl(item);
+    const owned = purchasedSet.has(item.id);
+
+    // URL baca buku di Open Library
+    const cleanId = String(item.id).replace(/^\/works\//, '').replace(/^\//, '');
+    const readUrl = `https://openlibrary.org/works/${encodeURIComponent(cleanId)}`;
+
+    const actionButtons = owned
+      ? `<a href="book-detail.html?id=${encodeURIComponent(item.id)}" class="btn btn-outline">Detail</a>
+         <a href="${readUrl}" target="_blank" rel="noopener" class="btn btn-primary">📖 Baca</a>`
+      : `<a href="book-detail.html?id=${encodeURIComponent(item.id)}" class="btn btn-outline">Detail</a>
+         <a href="${checkoutUrl}" class="btn btn-primary">🛒 Beli</a>`;
 
     return `
-      <article class="wishlist-card" data-id="${item.id}" style="animation: fadeInUp 0.3s ease both;">
+      <article class="wishlist-card${owned ? ' wishlist-card--owned' : ''}" data-id="${escapeHtml(item.id)}" style="animation: fadeInUp 0.3s ease both;">
         <div class="wishlist-card-cover-wrap">
-          <button class="btn-remove-wishlist" data-id="${item.id}" title="Hapus dari wishlist" aria-label="Hapus">
+          <button class="btn-remove-wishlist" data-id="${escapeHtml(item.id)}" title="Hapus dari wishlist" aria-label="Hapus">
             ✕
           </button>
-          <img src="${item.thumbnail}" alt="${item.title}" class="wishlist-card-cover" onerror="this.src='https://via.placeholder.com/150x220?text=No+Cover';" />
+          ${owned ? '<span class="wishlist-owned-badge">✅ Dimiliki</span>' : ''}
+          <img src="${escapeHtml(item.thumbnail)}" alt="${escapeHtml(item.title)}" class="wishlist-card-cover" onerror="this.src='https://via.placeholder.com/150x220?text=No+Cover';" />
         </div>
         <div class="wishlist-card-body">
-          <div class="wishlist-card-category">${item.category || 'Umum'}</div>
-          <h3 class="wishlist-card-title">${item.title}</h3>
-          <div class="wishlist-card-author">oleh ${authors}</div>
+          <div class="wishlist-card-category">${escapeHtml(item.category || 'Umum')}</div>
+          <h3 class="wishlist-card-title">${escapeHtml(item.title)}</h3>
+          <div class="wishlist-card-author">oleh ${escapeHtml(authors)}</div>
           <div class="wishlist-card-price-row">
-            <div class="wishlist-card-price">${formatRupiah(item.price)}</div>
+            ${owned
+              ? '<div class="wishlist-card-price wishlist-card-price--owned">Sudah Dibeli</div>'
+              : `<div class="wishlist-card-price">${formatRupiah(item.price)}</div>`
+            }
           </div>
           <div class="wishlist-card-actions">
-            <a href="book-detail.html?id=${item.id}" class="btn btn-outline">Detail</a>
-            <a href="${checkoutUrl}" class="btn btn-primary">🛒 Beli</a>
+            ${actionButtons}
           </div>
         </div>
       </article>
@@ -138,21 +166,40 @@ function renderWishlist() {
   }).join('');
 
   document.querySelectorAll('.btn-remove-wishlist').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', async (e) => {
       e.preventDefault();
       const bookId = btn.getAttribute('data-id');
       if (bookId) {
-        removeFromWishlist(bookId);
-        renderWishlist();
+        btn.disabled = true;
+        await removeFromWishlist(bookId);
+        await loadWishlist();
       }
     });
   });
 }
 
+async function loadWishlist() {
+  try {
+    const items = await getWishlist();
+
+    // Cek status "sudah dibeli" untuk setiap item secara paralel
+    const purchasedResults = await Promise.all(
+      items.map(item => isPurchased(item.id).catch(() => false))
+    );
+    const purchasedSet = new Set(
+      items.filter((_, i) => purchasedResults[i]).map(item => item.id)
+    );
+
+    renderWishlist(items, purchasedSet);
+  } catch (error) {
+    console.error('Gagal memuat wishlist:', error);
+    renderWishlist([]);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initNavbarAuth();
-initMobileNav();
+  initMobileNav();
   renderWishlistLoading();
-  // Data dari localStorage = synchronous, tapi skeleton memberi kesan loading yang natural
-  setTimeout(() => renderWishlist(), 350);
+  loadWishlist();
 });
