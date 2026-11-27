@@ -5,8 +5,10 @@ import {
   savePayment,
   PAYMENT_METHOD_LABELS,
 } from "../api/paymentApi.js";
-import { clearCart } from "../api/cartApi.js";
-import { getUser, isAuthenticated, isGuest, clearAuth } from "../utils/authStorage.js";
+import { getUser, isAuthenticated, isGuest, clearAuth, redirectIfAdmin } from "../utils/authStorage.js";
+
+// Admin tidak boleh di halaman ini
+redirectIfAdmin();
 
 // ---- Elemen DOM ----
 const orderBookInfoEl    = document.getElementById("orderBookInfo");
@@ -22,16 +24,25 @@ const modalTotal         = document.getElementById("modalTotal");
 const buyerNameEl        = document.getElementById("buyerName");
 const buyerEmailEl       = document.getElementById("buyerEmail");
 
-// Detail pembayaran — bank
+// Instruksi pembayaran
 const paymentDetailCard  = document.getElementById("paymentDetailCard");
 const bankFields         = document.getElementById("bankFields");
 const ewalletFields      = document.getElementById("ewalletFields");
-const bankAccountNumber  = document.getElementById("bankAccountNumber");
-const bankCardExpiry     = document.getElementById("bankCardExpiry");
-const bankCardCvc        = document.getElementById("bankCardCvc");
-const bankAccountName    = document.getElementById("bankAccountName");
-// Detail pembayaran — ewallet
-const ewalletPhone       = document.getElementById("ewalletPhone");
+const destinationName    = document.getElementById("paymentDestinationName");
+const destinationNumber  = document.getElementById("paymentDestinationNumber");
+const destinationOwner   = document.getElementById("paymentDestinationOwner");
+const ewalletName        = document.getElementById("ewalletDestinationName");
+const ewalletNumber      = document.getElementById("ewalletDestinationNumber");
+const paymentAmountEl    = document.getElementById("paymentAmount");
+
+// Tujuan pembayaran toko (disimulasikan untuk tugas)
+const PAYMENT_DESTINATIONS = {
+  bca:     { type: "bank",    name: "Bank BCA",   number: "1234567890",   owner: "TokoBuku Digital" },
+  mandiri: { type: "bank",    name: "Bank Mandiri", number: "1370012345678", owner: "TokoBuku Digital" },
+  gopay:   { type: "ewallet", name: "GoPay",      number: "0812-3456-7890" },
+  ovo:     { type: "ewallet", name: "OVO",        number: "0812-3456-7890" },
+  dana:    { type: "ewallet", name: "DANA",       number: "0812-3456-7890" },
+};
 
 // ---- Deteksi sumber: cart atau buku tunggal ----
 const params     = new URLSearchParams(window.location.search);
@@ -53,6 +64,7 @@ const bookData = {
 const currentPaymentId = generatePaymentId();
 
 // ---- Hitung total ----
+// Buku digital: setiap judul dihitung 1 eksemplar.
 function getTotal() {
   if (isCartMode) {
     return cartItems.reduce((sum, item) => sum + item.price, 0);
@@ -83,14 +95,14 @@ function prefillUserData() {
 
   buyerNameEl.value     = user.fullName || "";
   buyerEmailEl.value    = user.email || "";
-  buyerNameEl.readOnly  = true;
-  buyerEmailEl.readOnly = true;
 }
 
 // ---- Render Ringkasan Pesanan ----
 function renderOrderSummary() {
   orderIdEl.textContent    = currentPaymentId;
-  orderTotalEl.textContent = formatRupiah(getTotal());
+  const total = getTotal();
+  orderTotalEl.textContent = formatRupiah(total);
+  if (paymentAmountEl) paymentAmountEl.value = formatRupiah(total);
 
   if (isCartMode) {
     orderBookInfoEl.style.cssText = "display:block; overflow:hidden;";
@@ -106,6 +118,7 @@ function renderOrderSummary() {
                 src="${item.thumbnail}"
                 alt="${item.title}"
                 class="cart-order-img"
+                loading="lazy"
                 onerror="this.src='https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&auto=format&fit=crop&q=80'"
               />
               <div class="cart-order-meta">
@@ -118,7 +131,7 @@ function renderOrderSummary() {
         }).join("")}
       </div>
       <div style="margin-top:0.6rem; font-size:0.78rem; color:var(--primary); font-weight:600;">
-        📱 Buku Digital — Akses langsung setelah pembayaran
+        📱 ${cartItems.length} buku digital — akses langsung setelah pembayaran
       </div>
     `;
   } else {
@@ -152,60 +165,30 @@ function hideAlert() {
   checkoutAlert.classList.add("hidden");
 }
 
-// ---- Toggle form detail pembayaran ----
-function isBankMethod(method) {
-  return method === "bca" || method === "mandiri";
-}
-
-function isEwalletMethod(method) {
-  return method === "gopay" || method === "ovo" || method === "dana";
-}
-
+// ---- Tampilkan instruksi pembayaran sesuai metode ----
 function updatePaymentDetailForm(method) {
-  if (!method) {
+  const destination = PAYMENT_DESTINATIONS[method];
+
+  if (!destination) {
     paymentDetailCard.style.display = "none";
     return;
   }
 
   paymentDetailCard.style.display = "";
+  paymentAmountEl.value = formatRupiah(getTotal());
 
-  if (isBankMethod(method)) {
+  if (destination.type === "bank") {
     bankFields.style.display    = "";
     ewalletFields.style.display = "none";
-  } else if (isEwalletMethod(method)) {
+    destinationName.value   = destination.name;
+    destinationNumber.value = destination.number;
+    destinationOwner.value  = destination.owner;
+  } else {
     bankFields.style.display    = "none";
     ewalletFields.style.display = "";
+    ewalletName.value   = destination.name;
+    ewalletNumber.value = destination.number;
   }
-}
-
-// Format otomatis expiry date MM/YY
-if (bankCardExpiry) {
-  bankCardExpiry.addEventListener("input", (e) => {
-    let val = e.target.value.replace(/\D/g, "");
-    if (val.length > 2) {
-      val = val.slice(0, 2) + "/" + val.slice(2, 4);
-    }
-    e.target.value = val;
-  });
-}
-
-// Hanya angka untuk rekening dan CVC
-if (bankAccountNumber) {
-  bankAccountNumber.addEventListener("input", (e) => {
-    e.target.value = e.target.value.replace(/\D/g, "");
-  });
-}
-
-if (bankCardCvc) {
-  bankCardCvc.addEventListener("input", (e) => {
-    e.target.value = e.target.value.replace(/\D/g, "");
-  });
-}
-
-if (ewalletPhone) {
-  ewalletPhone.addEventListener("input", (e) => {
-    e.target.value = e.target.value.replace(/\D/g, "");
-  });
 }
 
 // Listener perubahan metode pembayaran
@@ -235,86 +218,11 @@ function validateForm() {
     return null;
   }
 
-  const method = methodEl.value;
-
-  // Validasi field detail sesuai metode
-  if (isBankMethod(method)) {
-    const accountNum = bankAccountNumber?.value.trim() || "";
-    const expiry     = bankCardExpiry?.value.trim()    || "";
-    const cvc        = bankCardCvc?.value.trim()       || "";
-    const accName    = bankAccountName?.value.trim()   || "";
-
-    if (!accountNum || accountNum.length < 6) {
-      showAlert("Nomor rekening tidak valid. Minimal 6 digit.");
-      bankAccountNumber?.focus();
-      return null;
-    }
-    if (!/^\d{2}\/\d{2}$/.test(expiry)) {
-      showAlert("Tanggal kadaluarsa tidak valid. Gunakan format MM/YY.");
-      bankCardExpiry?.focus();
-      return null;
-    }
-    if (!cvc || cvc.length < 3) {
-      showAlert("CVV tidak valid. Harus 3 digit.");
-      bankCardCvc?.focus();
-      return null;
-    }
-    if (!accName) {
-      showAlert("Nama pemilik rekening wajib diisi.");
-      bankAccountName?.focus();
-      return null;
-    }
-
-    return {
-      name,
-      email,
-      method,
-      paymentDetail: {
-        type:          "bank",
-        accountNumber: accountNum,
-        expiry,
-        cvv:           cvc,
-        accountName:   accName,
-      },
-    };
-  }
-
-  if (isEwalletMethod(method)) {
-    const phone = ewalletPhone?.value.trim() || "";
-    if (!phone || phone.length < 8) {
-      showAlert("Nomor telepon e-wallet tidak valid. Minimal 8 digit.");
-      ewalletPhone?.focus();
-      return null;
-    }
-
-    return {
-      name,
-      email,
-      method,
-      paymentDetail: {
-        type:  "ewallet",
-        phone: `+62${phone}`,
-      },
-    };
-  }
-
-  // Fallback jika ada metode baru
-  return { name, email, method, paymentDetail: null };
-}
-
-// ---- Sensor data sensitif untuk disimpan ----
-function maskAccountNumber(num) {
-  if (!num || num.length < 4) return num;
-  return "*".repeat(num.length - 4) + num.slice(-4);
-}
-
-function maskPhone(phone) {
-  if (!phone || phone.length < 6) return phone;
-  return phone.slice(0, 4) + "****" + phone.slice(-3);
+  return { name, email, method: methodEl.value };
 }
 
 // ---- Handle Bayar ----
-btnPay.addEventListener("click", () => {
+btnPay.addEventListener("click", async () => {
   hideAlert();
 
   const formData = validateForm();
@@ -323,97 +231,68 @@ btnPay.addEventListener("click", () => {
   btnPay.disabled    = true;
   btnPay.innerHTML = `<span class="spinner" style="width:18px;height:18px;border-width:2.5px;vertical-align:middle;margin-right:6px;"></span> Memproses...`;
 
-  setTimeout(() => {
-    const total = getTotal();
-
-    // Simpan hanya data tersamar untuk keamanan
-    let paymentDetailSaved = null;
-    if (formData.paymentDetail) {
-      if (formData.paymentDetail.type === "bank") {
-        paymentDetailSaved = {
-          type:          "bank",
-          accountNumber: maskAccountNumber(formData.paymentDetail.accountNumber),
-          expiry:        formData.paymentDetail.expiry,
-          cvv:           "***",
-          accountName:   formData.paymentDetail.accountName,
-        };
-      } else if (formData.paymentDetail.type === "ewallet") {
-        paymentDetailSaved = {
-          type:  "ewallet",
-          phone: maskPhone(formData.paymentDetail.phone),
-        };
-      }
-    }
-
-    let transaction;
-
-    if (isCartMode) {
-      transaction = {
-        paymentId: currentPaymentId,
-        paymentMethod: formData.method,
-        paymentMethodLabel: PAYMENT_METHOD_LABELS[formData.method] || formData.method,
-        items: cartItems.map(item => ({
+  try {
+    const items = isCartMode
+      ? cartItems.map(item => ({
           id:        item.id,
           title:     item.title,
           author:    Array.isArray(item.authors) ? item.authors[0] : (item.author || "Anonim"),
+          authors:   Array.isArray(item.authors) ? item.authors : [item.author || "Anonim"],
           thumbnail: item.thumbnail,
           price:     item.price,
-        })),
-        buyer: { name: formData.name, email: formData.email },
-        paymentDetail: paymentDetailSaved,
-        total,
-        paidAt: new Date().toISOString(),
-        type: "cart",
-      };
-    } else {
-      transaction = {
-        paymentId: currentPaymentId,
-        paymentMethod: formData.method,
-        paymentMethodLabel: PAYMENT_METHOD_LABELS[formData.method] || formData.method,
-        book: {
+        }))
+      : [{
           id:        bookData.id,
           title:     bookData.title,
           author:    bookData.author,
+          authors:   [bookData.author],
           thumbnail: bookData.thumbnail,
           price:     bookData.price,
-        },
-        buyer: { name: formData.name, email: formData.email },
-        paymentDetail: paymentDetailSaved,
-        total,
-        date: new Date().toISOString(),
-      };
+        }];
+
+    if (!isCartMode && !bookData.id) {
+      throw new Error("ID buku tidak valid. Silakan kembali ke halaman detail buku.");
     }
 
-    const saved = savePayment(transaction);
+    // Harga dan total final dihitung ulang oleh server.
+    const saved = await savePayment({
+      items,
+      paymentMethod: formData.method,
+      buyer: { name: formData.name, email: formData.email },
+      fromCart: isCartMode,
+    });
 
-    if (saved) {
-      if (isCartMode) {
-        clearCart();
-        sessionStorage.removeItem("cart_checkout");
-      }
+    if (isCartMode) {
+      sessionStorage.removeItem("cart_checkout");
+    }
 
-      modalOrderId.textContent = currentPaymentId;
-      if (isCartMode) {
-        modalBookTitle.textContent = cartItems.map(i => i.title).join(", ");
-        const modalQtyRow = document.getElementById("modalQtyRow");
-        if (modalQtyRow) modalQtyRow.style.display = "";
-        const modalQtyEl = document.getElementById("modalQty");
-        if (modalQtyEl) modalQtyEl.textContent = `${cartItems.length} judul`;
-      } else {
-        modalBookTitle.textContent = bookData.title;
-        const modalQtyRow = document.getElementById("modalQtyRow");
-        if (modalQtyRow) modalQtyRow.style.display = "none";
-      }
-      modalPaymentMethod.textContent = PAYMENT_METHOD_LABELS[formData.method] || formData.method;
-      modalTotal.textContent = formatRupiah(total);
+    const finalId    = saved.id || currentPaymentId;
+    const finalTotal = typeof saved.total === "number" ? saved.total : getTotal();
 
-      successModal.classList.remove("hidden");
+    orderIdEl.textContent    = finalId;
+    orderTotalEl.textContent = formatRupiah(finalTotal);
+
+    modalOrderId.textContent = finalId;
+    if (isCartMode) {
+      modalBookTitle.textContent = cartItems.map(i => i.title).join(", ");
+      const modalQtyRow = document.getElementById("modalQtyRow");
+      if (modalQtyRow) modalQtyRow.style.display = "";
+      const modalQtyEl = document.getElementById("modalQty");
+      if (modalQtyEl) modalQtyEl.textContent = `${cartItems.length} judul`;
     } else {
-      showAlert("Terjadi kesalahan saat memproses pembayaran. Silakan coba lagi.");
-      btnPay.disabled    = false;
-      btnPay.innerHTML = "🔒 Bayar Sekarang";
+      modalBookTitle.textContent = bookData.title;
+      const modalQtyRow = document.getElementById("modalQtyRow");
+      if (modalQtyRow) modalQtyRow.style.display = "none";
     }
-  }, 1500);
+    modalPaymentMethod.textContent = PAYMENT_METHOD_LABELS[formData.method] || formData.method;
+    modalTotal.textContent = formatRupiah(finalTotal);
+
+    successModal.classList.remove("hidden");
+  } catch (error) {
+    showAlert(error.message || "Terjadi kesalahan saat memproses pembayaran. Silakan coba lagi.");
+    btnPay.disabled    = false;
+    btnPay.innerHTML = "🔒 Bayar Sekarang";
+  }
 });
 
 // ---- Navbar ----
@@ -425,6 +304,7 @@ function updateNavbar() {
     navEl.innerHTML = `
       <a href="index.html" class="nav-link">Katalog</a>
       <a href="cart.html" class="nav-link">Keranjang</a>
+      <a href="library.html" class="nav-link">Perpustakaan</a>
       <a href="wishlist.html" class="nav-link">Wishlist</a>
       <a href="history.html" class="nav-link">Riwayat Pembelian</a>
     `;
@@ -455,6 +335,11 @@ if (isCartMode) {
   if (!cartItems.length) {
     window.location.href = "cart.html";
   }
+}
+
+// Mode buku tunggal tanpa ID (mis. halaman dibuka langsung) tidak bisa checkout.
+if (!isCartMode && !bookData.id) {
+  window.location.href = "index.html";
 }
 
 updateNavbar();

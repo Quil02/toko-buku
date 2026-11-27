@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Perpustakaan Saya - Toko Buku Online</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/library.css" />
+</head>
+<body>
+  <!-- Navbar Utama -->
+  <header class="navbar">
+    <div class="container">
+      <a href="index.html" class="navbar-brand">
+        📚 <span>TokoBuku</span>
+      </a>
+
+      <nav class="navbar-nav">
+        <a href="index.html" class="nav-link">Katalog</a>
+        <a href="cart.html" class="nav-link">Keranjang</a>
+        <a href="library.html" class="nav-link active">Perpustakaan</a>
+        <a href="wishlist.html" class="nav-link">Wishlist</a>
+        <a href="history.html" class="nav-link">Riwayat Pembelian</a>
+      </nav>
+
+      <button id="darkModeToggle" class="btn-dark-toggle" title="Ganti ke Mode Gelap" aria-label="Ganti ke Mode Gelap">🌙</button>
+      <div class="navbar-user" id="authNavContainer">        <!-- Dimuat secara dinamis oleh library.js -->
+        <a href="login.html" class="btn btn-outline">Masuk</a>
+        <a href="register.html" class="btn btn-primary">Daftar</a>
+      </div>
+      <button class="navbar-hamburger" id="navHamburger" aria-label="Buka menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+  <nav class="navbar-mobile-drawer" id="mobileDrawer" aria-label="Menu Mobile"></nav>
+
+  <!-- Konten Utama Library -->
+  <main class="library-container">
+    <div class="library-header">
+      <div class="library-title-wrap">
+        <h1>📖 Perpustakaan Saya <span id="libraryTotalBadge" class="library-count-badge">0 buku</span></h1>
+        <p class="library-subtitle">Koleksi buku digital yang sudah Anda beli dan siap dibaca.</p>
+      </div>
+      <div>
+        <a href="index.html" class="btn btn-outline">← Tambah Koleksi</a>
+      </div>
+    </div>
+
+    <!-- Grid Daftar Buku yang Sudah Dibeli -->
+    <div id="libraryGrid" class="library-grid">
+      <!-- Diisi oleh js/pages/library.js -->
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-bottom">
+      <p>&copy; 2025 TokoBuku Online Modern. Semua hak cipta dilindungi.</p>
+    </div>
+  </footer>
+
+  <script type="module" src="js/pages/library.js"></script>
+  <script type="module" src="js/utils/darkMode.js"></script>
+</body>
+</html>

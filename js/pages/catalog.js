@@ -1,6 +1,9 @@
 import { initMobileNav } from '../utils/mobileNav.js';
 import { fetchBooks } from '../api/bookApi.js';
-import { getUser, isAuthenticated, isGuest, clearAuth } from '../utils/authStorage.js';
+import { getUser, isAuthenticated, isGuest, clearAuth, redirectIfAdmin } from '../utils/authStorage.js';
+
+// Admin tidak boleh di halaman ini
+redirectIfAdmin();
 
 let allBooks = [];
 let masterBooks = [];
@@ -39,6 +42,7 @@ function initNavbarAuth() {
       navEl.innerHTML = `
         <a href="index.html" class="nav-link active">Katalog</a>
         <a href="cart.html" class="nav-link">Keranjang</a>
+        <a href="library.html" class="nav-link">Perpustakaan</a>
         <a href="wishlist.html" class="nav-link">Wishlist</a>
         <a href="history.html" class="nav-link">Riwayat Pembelian</a>
       `;

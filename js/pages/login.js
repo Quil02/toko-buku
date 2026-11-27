@@ -1,18 +1,24 @@
 import { loginRequest } from '../api/authApi.js';
-import { setAuth, isAuthenticated, setGuest } from '../utils/authStorage.js';
+import { setAuth, isAuthenticated, getUser, setGuest } from '../utils/authStorage.js';
 
 const params = new URLSearchParams(window.location.search);
 const redirectUrl = params.get('redirect') || 'index.html';
 
+// Jika sudah login, redirect sesuai role
 if (isAuthenticated()) {
-  window.location.href = redirectUrl;
+  const user = getUser();
+  if (user?.role === 'admin') {
+    window.location.href = 'admin.html';
+  } else {
+    window.location.href = redirectUrl;
+  }
 }
 
-const loginForm           = document.getElementById('loginForm');
+const loginForm            = document.getElementById('loginForm');
 const emailOrUsernameInput = document.getElementById('emailOrUsername');
-const passwordInput       = document.getElementById('password');
-const submitBtn           = document.getElementById('submitBtn');
-const authAlert           = document.getElementById('authAlert');
+const passwordInput        = document.getElementById('password');
+const submitBtn            = document.getElementById('submitBtn');
+const authAlert            = document.getElementById('authAlert');
 
 function showAlert(message, type = 'danger') {
   authAlert.className = `alert alert-${type}`;
@@ -54,10 +60,15 @@ if (loginForm) {
 
       if (res && res.success) {
         setAuth(res.token, res.user);
-
         showAlert('Login berhasil! Mengalihkan...', 'success');
+
         setTimeout(() => {
-          window.location.href = redirectUrl;
+          // Admin selalu ke dashboard admin, user ke halaman tujuan
+          if (res.user?.role === 'admin') {
+            window.location.href = 'admin.html';
+          } else {
+            window.location.href = redirectUrl;
+          }
         }, 800);
       }
     } catch (error) {

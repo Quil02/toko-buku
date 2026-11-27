@@ -2,7 +2,11 @@ import { initMobileNav } from '../utils/mobileNav.js';
 import { fetchBookById } from '../api/bookApi.js';
 import { addToWishlist, isInWishlist, removeFromWishlist } from '../api/wishlistApi.js';
 import { addToCart, isInCart } from '../api/cartApi.js';
-import { getUser, isAuthenticated, isGuest, clearAuth } from '../utils/authStorage.js';
+import { isPurchased } from '../api/paymentApi.js';
+import { getUser, isAuthenticated, isGuest, clearAuth, redirectIfAdmin } from '../utils/authStorage.js';
+
+// Admin tidak boleh di halaman ini
+redirectIfAdmin();
 
 const breadcrumbTitle   = document.getElementById('breadcrumbTitle');
 const bookDetailWrapper = document.getElementById('bookDetailWrapper');
@@ -34,6 +38,7 @@ function initNavbarAuth() {
       navEl.innerHTML = `
         <a href="index.html" class="nav-link">Katalog</a>
         <a href="cart.html" class="nav-link">Keranjang</a>
+        <a href="library.html" class="nav-link">Perpustakaan</a>
         <a href="wishlist.html" class="nav-link">Wishlist</a>
         <a href="history.html" class="nav-link">Riwayat Pembelian</a>
       `;
@@ -125,12 +130,17 @@ async function loadBookDetail() {
     breadcrumbTitle.textContent = book.title;
     document.title = `${book.title} - TokoBuku`;
 
-    const alreadyInWishlist = isInWishlist(book.id);
-    const alreadyInCart     = isInCart(book.id);
+    const isUserLoggedIn    = isAuthenticated() && !isGuest();
+    const alreadyInWishlist = await isInWishlist(book.id);
+    const alreadyInCart     = await isInCart(book.id);
+    const alreadyPurchased  = isUserLoggedIn ? await isPurchased(book.id) : false;
     const checkoutUrl       = buildCheckoutUrl(book);
 
+    // URL ke Open Library untuk baca buku yang sudah dibeli
+    const cleanId  = String(book.id).replace(/^\/works\//, '').replace(/^\//, '');
+    const readUrl  = `https://openlibrary.org/works/${encodeURIComponent(cleanId)}`;
+
     const cartBtnLabel = alreadyInCart ? '✅ Sudah di Keranjang' : '🛒 Tambah ke Keranjang';
-    const isUserLoggedIn = isAuthenticated() && !isGuest();
 
     bookDetailWrapper.innerHTML = `
       <section class="book-detail-main" style="animation: fadeInUp 0.35s ease both;">
@@ -151,13 +161,19 @@ async function loadBookDetail() {
 
           <div class="book-detail-actions">
             ${isUserLoggedIn
-              ? `<a href="${checkoutUrl}" class="btn btn-primary btn-action-buy" id="btnBuyNow">⚡ Beli Langsung</a>
-                 <button class="btn btn-outline btn-action-cart ${alreadyInCart ? 'in-cart' : ''}" id="btnAddToCart">
-                   ${cartBtnLabel}
-                 </button>
-                 <button class="btn btn-outline btn-action-wishlist ${alreadyInWishlist ? 'in-wishlist' : ''}" id="btnWishlist">
-                   ${alreadyInWishlist ? '❤️ Sudah di Wishlist' : '🤍 Tambah ke Wishlist'}
-                 </button>`
+              ? alreadyPurchased
+                ? `<a href="${readUrl}" target="_blank" rel="noopener" class="btn btn-primary btn-action-buy">📖 Baca Buku</a>
+                   <span class="purchased-badge">✅ Sudah Dibeli</span>
+                   <button class="btn btn-outline btn-action-wishlist ${alreadyInWishlist ? 'in-wishlist' : ''}" id="btnWishlist">
+                     ${alreadyInWishlist ? '❤️ Sudah di Wishlist' : '🤍 Tambah ke Wishlist'}
+                   </button>`
+                : `<a href="${checkoutUrl}" class="btn btn-primary btn-action-buy" id="btnBuyNow">⚡ Beli Langsung</a>
+                   <button class="btn btn-outline btn-action-cart ${alreadyInCart ? 'in-cart' : ''}" id="btnAddToCart">
+                     ${cartBtnLabel}
+                   </button>
+                   <button class="btn btn-outline btn-action-wishlist ${alreadyInWishlist ? 'in-wishlist' : ''}" id="btnWishlist">
+                     ${alreadyInWishlist ? '❤️ Sudah di Wishlist' : '🤍 Tambah ke Wishlist'}
+                   </button>`
               : `<a href="login.html?redirect=${encodeURIComponent(checkoutUrl)}" class="btn btn-primary btn-action-buy" id="btnBuyNow" title="Diperlukan login terlebih dahulu untuk menggunakan tombol ini">⚡ Beli Langsung</a>
                  <a href="login.html?redirect=${encodeURIComponent(window.location.href)}" class="btn btn-outline btn-action-cart" id="btnAddToCart" title="Diperlukan login terlebih dahulu untuk menggunakan tombol ini">🛒 Tambah ke Keranjang</a>
                  <a href="login.html?redirect=${encodeURIComponent(window.location.href)}" class="btn btn-outline btn-action-wishlist" id="btnWishlist" title="Diperlukan login terlebih dahulu untuk menggunakan tombol ini">🤍 Tambah ke Wishlist</a>`
@@ -192,27 +208,52 @@ async function loadBookDetail() {
     `;
 
     if (isUserLoggedIn) {
-      const btnAddToCart = document.getElementById('btnAddToCart');
-      btnAddToCart?.addEventListener('click', () => {
-        if (isInCart(book.id)) {
-          window.location.href = 'cart.html';
-          return;
-        }
-        addToCart(book);
-        btnAddToCart.textContent = '✅ Sudah di Keranjang';
-        btnAddToCart.classList.add('in-cart');
-      });
+      let inCart = alreadyInCart;
+
+      if (!alreadyPurchased) {
+        const btnAddToCart = document.getElementById('btnAddToCart');
+        btnAddToCart?.addEventListener('click', async () => {
+          if (inCart) {
+            window.location.href = 'cart.html';
+            return;
+          }
+
+          btnAddToCart.disabled = true;
+          try {
+            const added = await addToCart(book);
+            if (added) {
+              inCart = true;
+              btnAddToCart.textContent = '✅ Sudah di Keranjang';
+              btnAddToCart.classList.add('in-cart');
+            }
+          } catch (error) {
+            console.error('Gagal menambahkan ke keranjang:', error);
+          } finally {
+            btnAddToCart.disabled = false;
+          }
+        });
+      }
 
       const btnWishlist = document.getElementById('btnWishlist');
-      btnWishlist?.addEventListener('click', () => {
-        if (isInWishlist(book.id)) {
-          removeFromWishlist(book.id);
-          btnWishlist.textContent = '🤍 Tambah ke Wishlist';
-          btnWishlist.classList.remove('in-wishlist');
-        } else {
-          addToWishlist(book);
-          btnWishlist.textContent = '❤️ Sudah di Wishlist';
-          btnWishlist.classList.add('in-wishlist');
+      btnWishlist?.addEventListener('click', async () => {
+        btnWishlist.disabled = true;
+        try {
+          const inWishlist = await isInWishlist(book.id);
+          if (inWishlist) {
+            await removeFromWishlist(book.id);
+            btnWishlist.textContent = '🤍 Tambah ke Wishlist';
+            btnWishlist.classList.remove('in-wishlist');
+          } else {
+            const added = await addToWishlist(book);
+            if (added) {
+              btnWishlist.textContent = '❤️ Sudah di Wishlist';
+              btnWishlist.classList.add('in-wishlist');
+            }
+          }
+        } catch (error) {
+          console.error('Gagal memperbarui wishlist:', error);
+        } finally {
+          btnWishlist.disabled = false;
         }
       });
     }
