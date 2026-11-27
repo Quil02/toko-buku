@@ -61,61 +61,9 @@
             <div class="form-card">
               <div class="form-section-title">💳 Metode Pembayaran</div>
 
-              <div class="payment-methods">
-                <label class="payment-option">
-                  <input type="radio" name="paymentMethod" value="bca" />
-                  <div class="payment-option-content">
-                    <span class="payment-icon">🏦</span>
-                    <div>
-                      <div class="payment-name">Transfer Bank BCA</div>
-                      <div class="payment-desc">Transfer via ATM, Mobile Banking, atau Internet Banking</div>
-                    </div>
-                  </div>
-                </label>
-
-                <label class="payment-option">
-                  <input type="radio" name="paymentMethod" value="mandiri" />
-                  <div class="payment-option-content">
-                    <span class="payment-icon">🏦</span>
-                    <div>
-                      <div class="payment-name">Transfer Bank Mandiri</div>
-                      <div class="payment-desc">Transfer via ATM, Mobile Banking, atau Internet Banking</div>
-                    </div>
-                  </div>
-                </label>
-
-                <label class="payment-option">
-                  <input type="radio" name="paymentMethod" value="gopay" />
-                  <div class="payment-option-content">
-                    <span class="payment-icon">💚</span>
-                    <div>
-                      <div class="payment-name">GoPay</div>
-                      <div class="payment-desc">Bayar menggunakan saldo GoPay</div>
-                    </div>
-                  </div>
-                </label>
-
-                <label class="payment-option">
-                  <input type="radio" name="paymentMethod" value="ovo" />
-                  <div class="payment-option-content">
-                    <span class="payment-icon">💜</span>
-                    <div>
-                      <div class="payment-name">OVO</div>
-                      <div class="payment-desc">Bayar menggunakan saldo OVO</div>
-                    </div>
-                  </div>
-                </label>
-
-                <label class="payment-option">
-                  <input type="radio" name="paymentMethod" value="dana" />
-                  <div class="payment-option-content">
-                    <span class="payment-icon">💙</span>
-                    <div>
-                      <div class="payment-name">DANA</div>
-                      <div class="payment-desc">Bayar menggunakan saldo DANA</div>
-                    </div>
-                  </div>
-                </label>
+              <!-- Pilihan dirender dari katalog backend (js/pages/checkout.js) -->
+              <div class="payment-methods" id="paymentMethods">
+                <p class="payment-loading">Memuat metode pembayaran…</p>
               </div>
             </div>
 
@@ -123,40 +71,8 @@
             <div class="form-card" id="paymentDetailCard" style="display:none;">
               <div class="form-section-title" id="paymentDetailTitle">📋 Instruksi Pembayaran</div>
 
-              <div id="bankFields" style="display:none;">
-                <div class="payment-detail-info">
-                  <span class="payment-detail-badge bank">🏦 Transfer Bank</span>
-                  <p class="payment-detail-hint">Transfer sesuai total pesanan ke rekening toko berikut.</p>
-                </div>
-                <div class="form-group">
-                  <label for="paymentDestinationName">Bank Tujuan</label>
-                  <input type="text" id="paymentDestinationName" readonly />
-                </div>
-                <div class="form-group">
-                  <label for="paymentDestinationNumber">Nomor Rekening</label>
-                  <input type="text" id="paymentDestinationNumber" readonly />
-                </div>
-                <div class="form-group">
-                  <label for="paymentDestinationOwner">Atas Nama</label>
-                  <input type="text" id="paymentDestinationOwner" readonly />
-                </div>
-              </div>
-
-              <!-- E-Wallet (GoPay / OVO / DANA) -->
-              <div id="ewalletFields" style="display:none;">
-                <div class="payment-detail-info">
-                  <span class="payment-detail-badge ewallet">📱 E-Wallet</span>
-                  <p class="payment-detail-hint">Kirim pembayaran ke nomor e-wallet toko berikut.</p>
-                </div>
-                <div class="form-group">
-                  <label for="ewalletDestinationName">E-Wallet Tujuan</label>
-                  <input type="text" id="ewalletDestinationName" readonly />
-                </div>
-                <div class="form-group">
-                  <label for="ewalletDestinationNumber">Nomor Tujuan</label>
-                  <input type="text" id="ewalletDestinationNumber" readonly />
-                </div>
-              </div>
+              <!-- Instruksi diisi dinamis sesuai metode dipilih (js/pages/checkout.js) -->
+              <div id="paymentDetailBody"></div>
 
               <div class="form-group">
                 <label for="paymentAmount">Jumlah yang Harus Dibayar</label>
